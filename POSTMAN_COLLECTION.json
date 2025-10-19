@@ -1,0 +1,378 @@
+{
+  "info": {
+    "name": "Liga de Fútbol API",
+    "description": "Colección completa de endpoints para el sistema de Liga de Fútbol",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Equipos",
+      "item": [
+        {
+          "name": "Crear Equipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"San Lorenzo\",\n  \"ciudad\": \"Buenos Aires\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/equipos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "equipos"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Todos los Equipos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/equipos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "equipos"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Equipo por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/equipos/0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "equipos", "0"]
+            }
+          }
+        },
+        {
+          "name": "Tabla de Posiciones",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/equipos/tabla-posiciones",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "equipos", "tabla-posiciones"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Estadios",
+      "item": [
+        {
+          "name": "Crear Estadio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nuevo Gasómetro\",\n  \"ciudad\": \"Buenos Aires\",\n  \"capacidad\": 47964,\n  \"latitud\": -34.6591,\n  \"longitud\": -58.4375\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/estadios",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "estadios"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Todos los Estadios",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/estadios",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "estadios"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partidos",
+      "item": [
+        {
+          "name": "Crear Partido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipoLocal\": {\n    \"id\": 0\n  },\n  \"equipoVisitante\": {\n    \"id\": 1\n  },\n  \"estadio\": {\n    \"id\": 0\n  },\n  \"fecha\": \"2024-12-01T15:00:00\",\n  \"jornada\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/partidos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "partidos"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Todos los Partidos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/partidos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "partidos"]
+            }
+          }
+        },
+        {
+          "name": "Registrar Resultado",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "http://localhost:8080/api/partidos/0/resultado?golesLocal=2&golesVisitante=1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "partidos", "0", "resultado"],
+              "query": [
+                {
+                  "key": "golesLocal",
+                  "value": "2"
+                },
+                {
+                  "key": "golesVisitante",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos - BFS/DFS",
+      "item": [
+        {
+          "name": "BFS - Buscar Camino",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/bfs/0/3",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "bfs", "0", "3"]
+            }
+          }
+        },
+        {
+          "name": "DFS - Buscar Camino",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/dfs/0/3",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "dfs", "0", "3"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos - Dijkstra",
+      "item": [
+        {
+          "name": "Dijkstra - Ruta Más Corta Equipos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/dijkstra/equipos/0/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "dijkstra", "equipos", "0", "1"]
+            }
+          }
+        },
+        {
+          "name": "Dijkstra - Ruta Más Corta Estadios",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/dijkstra/estadios/0/2",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "dijkstra", "estadios", "0", "2"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos - MST",
+      "item": [
+        {
+          "name": "MST - Prim",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/mst/prim",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "mst", "prim"]
+            }
+          }
+        },
+        {
+          "name": "MST - Kruskal",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/mst/kruskal",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "mst", "kruskal"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos - Greedy",
+      "item": [
+        {
+          "name": "Greedy - Emparejar Partidos",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/greedy/emparejar?fechaInicio=2024-12-01T15:00:00",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "greedy", "emparejar"],
+              "query": [
+                {
+                  "key": "fechaInicio",
+                  "value": "2024-12-01T15:00:00"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos - Programación Dinámica",
+      "item": [
+        {
+          "name": "DP - Planificar Fixture",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"2024-12-01T15:00:00\",\n  \"2024-12-08T15:00:00\",\n  \"2024-12-15T15:00:00\",\n  \"2024-12-22T15:00:00\"\n]"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/dp/fixture",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "dp", "fixture"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos - Backtracking",
+      "item": [
+        {
+          "name": "Backtracking - Fixture Completo",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/backtracking/fixture-completo",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "backtracking", "fixture-completo"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algoritmos - Branch & Bound",
+      "item": [
+        {
+          "name": "Branch & Bound - Optimizar Calendario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"2024-12-01T15:00:00\",\n  \"2024-12-08T15:00:00\",\n  \"2024-12-15T15:00:00\"\n]"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/algoritmos/branch-bound/calendario?presupuesto=5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "algoritmos", "branch-bound", "calendario"],
+              "query": [
+                {
+                  "key": "presupuesto",
+                  "value": "5000"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
