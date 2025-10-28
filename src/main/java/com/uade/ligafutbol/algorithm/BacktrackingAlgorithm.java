@@ -126,8 +126,10 @@ public class BacktrackingAlgorithm {
         
         for (Jornada jornada : fixture) {
             for (Cruce cruce : jornada.getCruces()) {
-                String key1 = cruce.getEquipoLocal().getId() + "-" + cruce.getEquipoVisitante().getId();
-                String key2 = cruce.getEquipoVisitante().getId() + "-" + cruce.getEquipoLocal().getId();
+                String idLocal = cruce.getEquipoLocal().getId() != null ? cruce.getEquipoLocal().getId() : String.valueOf(cruce.getEquipoLocal().hashCode());
+                String idVisitante = cruce.getEquipoVisitante().getId() != null ? cruce.getEquipoVisitante().getId() : String.valueOf(cruce.getEquipoVisitante().hashCode());
+                String key1 = idLocal + "-" + idVisitante;
+                String key2 = idVisitante + "-" + idLocal;
                 
                 if (crucesVistos.contains(key1) || crucesVistos.contains(key2)) {
                     return false; // Cruce repetido
@@ -176,7 +178,9 @@ public class BacktrackingAlgorithm {
                 Equipo eq2 = equipos.get(j);
                 if (equiposUsados.contains(eq2)) continue;
                 
-                String restriccion = eq1.getId() + "-" + eq2.getId();
+                String id1 = eq1.getId() != null ? eq1.getId() : String.valueOf(eq1.hashCode());
+                String id2 = eq2.getId() != null ? eq2.getId() : String.valueOf(eq2.hashCode());
+                String restriccion = id1 + "-" + id2;
                 
                 // Verificar restricciones
                 if (!restricciones.contains(restriccion)) {

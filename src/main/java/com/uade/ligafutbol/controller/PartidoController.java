@@ -30,7 +30,7 @@ public class PartidoController {
     
     @PutMapping("/{id}/resultado")
     public ResponseEntity<Partido> registrarResultado(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestParam Integer golesLocal,
             @RequestParam Integer golesVisitante) {
         Partido partido = ligaService.registrarResultado(id, golesLocal, golesVisitante);

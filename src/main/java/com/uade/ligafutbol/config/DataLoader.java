@@ -36,10 +36,8 @@ public class DataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         logger.info("Iniciando carga de datos iniciales...");
 
-        if (equipoRepository.count() > 0) {
-            logger.info("Los datos ya existen, saltando la carga inicial.");
-            return;
-        }
+        // Always attempt idempotent upserts so the loader can be run multiple times.
+        // This replaces the previous shortcut that skipped loading when any equipos existed.
 
         try {
             cargarEstadios();
@@ -70,8 +68,26 @@ public class DataLoader implements CommandLineRunner {
             new Estadio("Estadio Gigante de Arroyito", "Rosario", 41654, -32.9500, -60.6667)
         );
 
-        estadioRepository.saveAll(estadios);
-        logger.info("Estadios cargados: {}", estadios.size());
+        int createdOrUpdated = 0;
+            for (Estadio e : estadios) {
+                Estadio persisted = null;
+                java.util.List<Estadio> found = estadioRepository.findByNombre(e.getNombre());
+                if (found != null && !found.isEmpty()) persisted = found.get(0);
+                if (persisted == null) {
+                    estadioRepository.save(e);
+                    createdOrUpdated++;
+                } else {
+                    // update mutable fields
+                    persisted.setCiudad(e.getCiudad());
+                    // set capacity only if provided
+                    persisted.setCapacidad(e.getCapacidad());
+                    persisted.setLatitud(e.getLatitud());
+                    persisted.setLongitud(e.getLongitud());
+                    estadioRepository.save(persisted);
+                    createdOrUpdated++;
+                }
+        }
+        logger.info("Estadios creados/actualizados: {}", createdOrUpdated);
     }
 
     private void cargarConexionesEstadios() {
@@ -104,8 +120,11 @@ public class DataLoader implements CommandLineRunner {
             agregarConexionEstadio(presidentePeron, new ConexionEstadio(bombonera, 8.3, 350.0, 25));
         }
 
-        estadioRepository.saveAll(estadios);
-        logger.info("Conexiones entre estadios cargadas");
+        // Save any estadio that had its conexiones modified
+        for (Estadio e : estadios) {
+            estadioRepository.save(e);
+        }
+        logger.info("Conexiones entre estadios creadas/actualizadas");
     }
 
     private void cargarEquipos() {
@@ -147,9 +166,30 @@ public class DataLoader implements CommandLineRunner {
             riverPlate, bocaJuniors, racingClub, independiente, sanLorenzo,
             huracan, talleres, centralCordoba, colon, godoyCruz
         );
-
-        equipoRepository.saveAll(equipos);
-        logger.info("Equipos cargados: {}", equipos.size());
+        int createdOrUpdated = 0;
+            for (Equipo eq : equipos) {
+                Equipo persisted = null;
+                java.util.List<Equipo> foundEq = equipoRepository.findByNombre(eq.getNombre());
+                if (foundEq != null && !foundEq.isEmpty()) persisted = foundEq.get(0);
+                if (persisted == null) {
+                    equipoRepository.save(eq);
+                    createdOrUpdated++;
+                } else {
+                // update mutable fields and stadium association
+                persisted.setCiudad(eq.getCiudad());
+                persisted.setPuntos(eq.getPuntos());
+                persisted.setPartidosJugados(eq.getPartidosJugados());
+                persisted.setPartidosGanados(eq.getPartidosGanados());
+                persisted.setPartidosEmpatados(eq.getPartidosEmpatados());
+                persisted.setPartidosPerdidos(eq.getPartidosPerdidos());
+                persisted.setGolesAFavor(eq.getGolesAFavor());
+                persisted.setGolesEnContra(eq.getGolesEnContra());
+                persisted.setEstadio(eq.getEstadio());
+                equipoRepository.save(persisted);
+                createdOrUpdated++;
+            }
+        }
+        logger.info("Equipos creados/actualizados: {}", createdOrUpdated);
     }
 
     private void cargarConexionesEquipos() {
@@ -199,8 +239,10 @@ public class DataLoader implements CommandLineRunner {
             agregarConexionEquipo(huracan, new ConexionEquipo(bocaJuniors, 8.0, 320.0, 24));
         }
 
-        equipoRepository.saveAll(equipos);
-        logger.info("Conexiones entre equipos cargadas");
+        for (Equipo e : equipos) {
+            equipoRepository.save(e);
+        }
+        logger.info("Conexiones entre equipos creadas/actualizadas");
     }
 
     private void cargarPartidos() {
@@ -208,6 +250,11 @@ public class DataLoader implements CommandLineRunner {
 
         List<Equipo> equipos = equipoRepository.findAll();
         List<Estadio> estadios = estadioRepository.findAll();
+        // Defensive: ensure we have enough equipos/estadios to index into the lists.
+        if (equipos.size() < 10 || estadios.size() < 8) {
+            logger.warn("No hay suficientes equipos ({}) o estadios ({}) para crear la programación de partidos. Se omite la carga de partidos.", equipos.size(), estadios.size());
+            return;
+        }
 
         List<Partido> partidos = Arrays.asList(
             new Partido(equipos.get(0), equipos.get(1), estadios.get(0), LocalDateTime.of(2024, 2, 10, 16, 0), 1),
@@ -241,8 +288,30 @@ public class DataLoader implements CommandLineRunner {
         partidos.get(8).registrarResultado(1, 1);
         partidos.get(9).registrarResultado(0, 3);
 
-        partidoRepository.saveAll(partidos);
-        logger.info("Partidos cargados: {}", partidos.size());
+        int createdOrUpdated = 0;
+        for (Partido p : partidos) {
+            // try to find an existing partido with same fecha and local/visitante
+            List<Partido> candidatos = partidoRepository.findByJornada(p.getJornada());
+            Partido existente = candidatos.stream()
+                    .filter(pp -> pp.getFecha() != null && pp.getFecha().equals(p.getFecha())
+                            && pp.getEquipoLocal() != null && pp.getEquipoVisitante() != null
+                            && pp.getEquipoLocal().getNombre().equals(p.getEquipoLocal().getNombre())
+                            && pp.getEquipoVisitante().getNombre().equals(p.getEquipoVisitante().getNombre()))
+                    .findFirst().orElse(null);
+
+            if (existente == null) {
+                partidoRepository.save(p);
+                createdOrUpdated++;
+            } else {
+                // update result fields
+                existente.setGolesLocal(p.getGolesLocal());
+                existente.setGolesVisitante(p.getGolesVisitante());
+                existente.setJugado(p.getJugado());
+                partidoRepository.save(existente);
+                createdOrUpdated++;
+            }
+        }
+        logger.info("Partidos creados/actualizados: {}", createdOrUpdated);
     }
 
     private Estadio buscarEstadioPorNombre(List<Estadio> estadios, String nombre) {

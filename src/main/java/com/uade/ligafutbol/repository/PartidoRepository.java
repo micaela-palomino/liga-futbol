@@ -8,17 +8,17 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PartidoRepository extends Neo4jRepository<Partido, Long> {
+public interface PartidoRepository extends Neo4jRepository<Partido, String> {
     
     List<Partido> findByJornada(Integer jornada);
     
     List<Partido> findByJugado(Boolean jugado);
     
     @Query("MATCH (p:Partido)-[:EQUIPO_LOCAL]->(el:Equipo), " +
-           "(p)-[:EQUIPO_VISITANTE]->(ev:Equipo) " +
-           "WHERE id(el) = $equipoId OR id(ev) = $equipoId " +
-           "RETURN p ORDER BY p.fecha")
-    List<Partido> findByEquipo(Long equipoId);
+        "(p)-[:EQUIPO_VISITANTE]->(ev:Equipo) " +
+        "WHERE el.id = $equipoId OR ev.id = $equipoId " +
+        "RETURN p ORDER BY p.fecha")
+    List<Partido> findByEquipo(String equipoId);
     
     @Query("MATCH (p:Partido) RETURN p ORDER BY p.fecha")
     List<Partido> findAllOrderedByFecha();

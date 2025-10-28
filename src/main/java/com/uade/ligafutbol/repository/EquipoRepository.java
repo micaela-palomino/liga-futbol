@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EquipoRepository extends Neo4jRepository<Equipo, Long> {
+public interface EquipoRepository extends Neo4jRepository<Equipo, String> {
     
-    Optional<Equipo> findByNombre(String nombre);
+    java.util.List<Equipo> findByNombre(String nombre);
     
     List<Equipo> findByCiudad(String ciudad);
     
@@ -19,7 +19,7 @@ public interface EquipoRepository extends Neo4jRepository<Equipo, Long> {
     List<Equipo> findAllOrderedByPosition();
     
     @Query("MATCH path = (e1:Equipo)-[:CONECTADO_CON*]-(e2:Equipo) " +
-           "WHERE id(e1) = $equipoOrigenId AND id(e2) = $equipoDestinoId " +
-           "RETURN path")
-    List<Object> findAllPathsBetween(Long equipoOrigenId, Long equipoDestinoId);
+        "WHERE e1.id = $equipoOrigenId AND e2.id = $equipoDestinoId " +
+        "RETURN path")
+    List<Object> findAllPathsBetween(String equipoOrigenId, String equipoDestinoId);
 }

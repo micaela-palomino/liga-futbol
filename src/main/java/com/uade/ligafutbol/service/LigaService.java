@@ -59,7 +59,7 @@ public class LigaService {
         return equipoRepository.findAll();
     }
     
-    public Equipo obtenerEquipoPorId(Long id) {
+    public Equipo obtenerEquipoPorId(String id) {
         return equipoRepository.findById(id).orElse(null);
     }
     
@@ -83,7 +83,7 @@ public class LigaService {
         return partidoRepository.findAllOrderedByFecha();
     }
     
-    public Partido registrarResultado(Long partidoId, Integer golesLocal, Integer golesVisitante) {
+    public Partido registrarResultado(String partidoId, Integer golesLocal, Integer golesVisitante) {
         Partido partido = partidoRepository.findById(partidoId).orElse(null);
         if (partido != null) {
             partido.registrarResultado(golesLocal, golesVisitante);
@@ -103,7 +103,7 @@ public class LigaService {
     
     // ========== Algoritmos de Grafos (BFS/DFS) ==========
     
-    public List<Equipo> encontrarCaminoBFS(Long equipoOrigenId, Long equipoDestinoId) {
+    public List<Equipo> encontrarCaminoBFS(String equipoOrigenId, String equipoDestinoId) {
         Equipo origen = equipoRepository.findById(equipoOrigenId).orElse(null);
         Equipo destino = equipoRepository.findById(equipoDestinoId).orElse(null);
         
@@ -113,7 +113,7 @@ public class LigaService {
         return List.of();
     }
     
-    public List<Equipo> encontrarCaminoDFS(Long equipoOrigenId, Long equipoDestinoId) {
+    public List<Equipo> encontrarCaminoDFS(String equipoOrigenId, String equipoDestinoId) {
         Equipo origen = equipoRepository.findById(equipoOrigenId).orElse(null);
         Equipo destino = equipoRepository.findById(equipoDestinoId).orElse(null);
         
@@ -125,7 +125,7 @@ public class LigaService {
     
     // ========== Dijkstra ==========
     
-    public DijkstraAlgorithm.ResultadoDijkstra<Equipo> encontrarRutaMasCorta(Long equipoOrigenId, Long equipoDestinoId) {
+    public DijkstraAlgorithm.ResultadoDijkstra<Equipo> encontrarRutaMasCorta(String equipoOrigenId, String equipoDestinoId) {
         Equipo origen = equipoRepository.findById(equipoOrigenId).orElse(null);
         Equipo destino = equipoRepository.findById(equipoDestinoId).orElse(null);
         
@@ -135,7 +135,7 @@ public class LigaService {
         return null;
     }
     
-    public DijkstraAlgorithm.ResultadoDijkstra<Estadio> encontrarRutaMasCortaEstadios(Long estadioOrigenId, Long estadioDestinoId) {
+    public DijkstraAlgorithm.ResultadoDijkstra<Estadio> encontrarRutaMasCortaEstadios(String estadioOrigenId, String estadioDestinoId) {
         Estadio origen = estadioRepository.findById(estadioOrigenId).orElse(null);
         Estadio destino = estadioRepository.findById(estadioDestinoId).orElse(null);
         

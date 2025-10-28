@@ -1,25 +1,26 @@
 package com.uade.ligafutbol.model;
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Node
 @Data
+@EqualsAndHashCode(exclude = "conexiones")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Equipo {
     
     @Id
-    @GeneratedValue
-    private Long id;
+    private String id = UUID.randomUUID().toString();
     
     private String nombre;
     private String ciudad;
@@ -74,5 +75,27 @@ public class Equipo {
         this.partidosPerdidos++;
         this.golesAFavor += golesFavor;
         this.golesEnContra += golesContra;
+    }
+
+    // Explicit getters/setters for puntos in case Lombok annotation processing
+    // is not active in the build/IDE. Having these avoids "cannot find symbol"
+    // errors when calling getPuntos()/setPuntos() from other classes.
+    public Integer getPuntos() {
+        return this.puntos;
+    }
+
+    public void setPuntos(Integer puntos) {
+        this.puntos = puntos;
+    }
+
+    // Explicit getters/setters for partidosJugados in case Lombok annotation
+    // processing is not active in the IDE/build. This avoids "cannot find symbol"
+    // errors when other classes call getPartidosJugados()/setPartidosJugados().
+    public Integer getPartidosJugados() {
+        return this.partidosJugados;
+    }
+
+    public void setPartidosJugados(Integer partidosJugados) {
+        this.partidosJugados = partidosJugados;
     }
 }

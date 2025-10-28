@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EstadioRepository extends Neo4jRepository<Estadio, Long> {
+public interface EstadioRepository extends Neo4jRepository<Estadio, String> {
     
-    Optional<Estadio> findByNombre(String nombre);
+    java.util.List<Estadio> findByNombre(String nombre);
     
     List<Estadio> findByCiudad(String ciudad);
     
     @Query("MATCH path = (e1:Estadio)-[:CONECTADO_CON*]-(e2:Estadio) " +
-           "WHERE id(e1) = $estadioOrigenId AND id(e2) = $estadioDestinoId " +
-           "RETURN path")
-    List<Object> findAllPathsBetween(Long estadioOrigenId, Long estadioDestinoId);
+        "WHERE e1.id = $estadioOrigenId AND e2.id = $estadioDestinoId " +
+        "RETURN path")
+    List<Object> findAllPathsBetween(String estadioOrigenId, String estadioDestinoId);
 }
