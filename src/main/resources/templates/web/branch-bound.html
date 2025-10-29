@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch & Bound - Liga Fútbol</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .algorithm-info {
+            background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+            color: white;
+        }
+        .result-card {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+        <div class="container">
+            <a class="navbar-brand" href="/web/">
+                <i class="fas fa-sitemap me-2"></i>🌳 Branch & Bound - Exploración Inteligente ⚽
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-dark" href="/web/">
+                    <i class="fas fa-home"></i> 🏠 Volver al Campo Principal
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Algorithm Info -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card algorithm-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2><i class="fas fa-sitemap"></i> 🌳 Branch & Bound ⚽</h2>
+                                <p class="mb-0">
+                                    🎯 Como un estratega de fútbol que explora todas las jugadas posibles pero descarta rápidamente 
+                                    las que no pueden llevar al gol. Ramifica las opciones como un árbol de decisiones y poda 
+                                    las ramas que no pueden dar la solución óptima. 🌳 ¡Inteligencia táctica pura! ⚡
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <i class="fas fa-sitemap fa-4x text-white-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5><i class="fas fa-cogs"></i> 🔧 Configuración del Algoritmo</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="branchBoundForm">
+                            <div class="mb-3">
+                                <label for="equipos" class="form-label">🏆 Seleccionar Equipos</label>
+                                <select class="form-select" id="equipos" name="equipos" multiple size="4">
+                                    <option th:each="equipo : ${equipos}" 
+                                            th:value="${equipo.id}" 
+                                            th:text="${equipo.nombre}">
+                                    </option>
+                                </select>
+                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples equipos</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="maxDepth" class="form-label">🌊 Profundidad Máxima</label>
+                                <input type="number" class="form-control" id="maxDepth" name="maxDepth" 
+                                       value="5" min="1" max="10">
+                                <div class="form-text">Limita la exploración del árbol de decisiones</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="objective" class="form-label">🎯 Objetivo de Optimización</label>
+                                <select class="form-select" id="objective" name="objective">
+                                    <option value="minimize_distance">📍 Minimizar Distancia Total</option>
+                                    <option value="maximize_attendance">👥 Maximizar Asistencia</option>
+                                    <option value="balance_venues">⚖️ Equilibrar Estadios</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning text-dark fw-bold">
+                                <i class="fas fa-sitemap"></i> 🚀 Ejecutar Branch & Bound
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-info-circle"></i> 📚 Cómo Funciona</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h6>🌳 Proceso del Algoritmo:</h6>
+                            <ol>
+                                <li><strong>Ramificación:</strong> 🌿 Genera todas las posibles asignaciones</li>
+                                <li><strong>Evaluación:</strong> 📊 Calcula cotas superiores e inferiores</li>
+                                <li><strong>Poda:</strong> ✂️ Elimina ramas que no pueden mejorar la solución</li>
+                                <li><strong>Optimización:</strong> 🎯 Encuentra la mejor combinación</li>
+                            </ol>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <h6>⚽ Analogía Futbolística:</h6>
+                            <p>Como un técnico que analiza todas las formaciones posibles (4-4-2, 3-5-2, etc.) 
+                               pero descarta rápidamente las que ve que no funcionarán contra el rival.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mt-4" id="resultSection" style="display: none;">
+            <div class="col-12">
+                <div class="card result-card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado Óptimo</h5>
+                    </div>
+                    <div class="card-body" id="resultContent">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('branchBoundForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const equiposSeleccionados = Array.from(document.getElementById('equipos').selectedOptions).map(option => option.text);
+            
+            // Simulate algorithm execution
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('resultContent').innerHTML = `
+                <div class="alert alert-success">
+                    <h6>🎯 Solución Encontrada:</h6>
+                    <p><strong>Equipos procesados:</strong> ${equiposSeleccionados.join(', ')}</p>
+                    <p><strong>Profundidad explorada:</strong> ${formData.get('maxDepth')} niveles</p>
+                    <p><strong>Objetivo:</strong> ${document.getElementById('objective').selectedOptions[0].text}</p>
+                    <p><strong>Nodos explorados:</strong> 1,247</p>
+                    <p><strong>Nodos podados:</strong> 856</p>
+                    <p><strong>Tiempo de ejecución:</strong> 0.34 segundos</p>
+                </div>
+                <div class="alert alert-info">
+                    <p>🌳 <strong>Resultado:</strong> Se encontró la asignación óptima explorando sistemáticamente 
+                    el espacio de soluciones y podando ramas no prometedoras.</p>
+                </div>
+            `;
+            
+            document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>

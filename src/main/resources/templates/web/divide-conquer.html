@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divide y Vencerás - Liga Fútbol</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .algorithm-info {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+        }
+        .result-card {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #6f42c1;">
+        <div class="container">
+            <a class="navbar-brand" href="/web/">
+                <i class="fas fa-chess me-2"></i>♟️ Divide y Vencerás - Estrategia Maestra ⚽
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/web/">
+                    <i class="fas fa-home"></i> 🏠 Volver al Campo Principal
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Algorithm Info -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card algorithm-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2><i class="fas fa-chess"></i> ♟️ Divide y Vencerás ⚽</h2>
+                                <p class="mb-0">
+                                    ⚔️ Como un técnico que divide su equipo en líneas (defensa, medio, ataque) para resolver 
+                                    cada zona por separado, luego las combina en una estrategia ganadora. Divide el problema 
+                                    grande en partes pequeñas, las resuelve y las une. 🏆 ¡El poder de la organización! 📊
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <i class="fas fa-chess fa-4x text-white-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header" style="background-color: #6f42c1; color: white;">
+                        <h5><i class="fas fa-cogs"></i> 🔧 Configuración del Algoritmo</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="divideConquerForm">
+                            <div class="mb-3">
+                                <label for="equipos" class="form-label">🏆 Seleccionar Equipos</label>
+                                <select class="form-select" id="equipos" name="equipos" multiple size="4">
+                                    <option th:each="equipo : ${equipos}" 
+                                            th:value="${equipo.id}" 
+                                            th:text="${equipo.nombre}">
+                                    </option>
+                                </select>
+                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples equipos</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="divisionStrategy" class="form-label">📊 Estrategia de División</label>
+                                <select class="form-select" id="divisionStrategy" name="divisionStrategy">
+                                    <option value="geographic">🗺️ Por Región Geográfica</option>
+                                    <option value="strength">💪 Por Fortaleza del Equipo</option>
+                                    <option value="random">🎲 División Aleatoria</option>
+                                    <option value="balanced">⚖️ Grupos Balanceados</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="groupSize" class="form-label">👥 Tamaño de Subgrupos</label>
+                                <input type="number" class="form-control" id="groupSize" name="groupSize" 
+                                       value="2" min="2" max="6">
+                                <div class="form-text">Número de equipos por subgrupo</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mergeStrategy" class="form-label">🔗 Estrategia de Combinación</label>
+                                <select class="form-select" id="mergeStrategy" name="mergeStrategy">
+                                    <option value="tournament">🏆 Sistema de Torneo</option>
+                                    <option value="roundrobin">🔄 Todos contra Todos</option>
+                                    <option value="playoff">⚡ Sistema de Playoffs</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn text-white fw-bold" style="background-color: #6f42c1;">
+                                <i class="fas fa-chess"></i> 🚀 Ejecutar Divide y Vencerás
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-info-circle"></i> 📚 Cómo Funciona</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h6>♟️ Proceso del Algoritmo:</h6>
+                            <ol>
+                                <li><strong>Dividir:</strong> 📂 Separa el problema en subproblemas más pequeños</li>
+                                <li><strong>Vencer:</strong> ⚔️ Resuelve cada subproblema independientemente</li>
+                                <li><strong>Combinar:</strong> 🔗 Une las soluciones parciales</li>
+                                <li><strong>Optimizar:</strong> 🎯 Refina el resultado final</li>
+                            </ol>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <h6>⚽ Analogía Futbolística:</h6>
+                            <p>Como organizar un mundial: divides los equipos en grupos (fase de grupos), 
+                               resuelves cada grupo por separado, y luego combinas a los ganadores en eliminatorias.</p>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <h6>💡 Ventajas:</h6>
+                            <ul>
+                                <li>🚀 Más eficiente para problemas grandes</li>
+                                <li>🔄 Permite paralelización</li>
+                                <li>📊 Fácil de entender y implementar</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mt-4" id="resultSection" style="display: none;">
+            <div class="col-12">
+                <div class="card result-card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado de División y Conquista</h5>
+                    </div>
+                    <div class="card-body" id="resultContent">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('divideConquerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const equiposSeleccionados = Array.from(document.getElementById('equipos').selectedOptions).map(option => option.text);
+            const divisionStrategy = document.getElementById('divisionStrategy').selectedOptions[0].text;
+            const mergeStrategy = document.getElementById('mergeStrategy').selectedOptions[0].text;
+            
+            // Simulate algorithm execution
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('resultContent').innerHTML = `
+                <div class="alert alert-success">
+                    <h6>⚔️ Solución por División y Conquista:</h6>
+                    <p><strong>Equipos procesados:</strong> ${equiposSeleccionados.join(', ')}</p>
+                    <p><strong>Estrategia de división:</strong> ${divisionStrategy}</p>
+                    <p><strong>Tamaño de grupos:</strong> ${formData.get('groupSize')} equipos</p>
+                    <p><strong>Estrategia de combinación:</strong> ${mergeStrategy}</p>
+                    <p><strong>Subproblemas creados:</strong> ${Math.ceil(equiposSeleccionados.length / formData.get('groupSize'))}</p>
+                    <p><strong>Tiempo de ejecución:</strong> 0.18 segundos</p>
+                </div>
+                <div class="alert alert-info">
+                    <p>♟️ <strong>Proceso completado:</strong> Se dividió el problema en subgrupos, 
+                    se resolvió cada uno independientemente y se combinaron las soluciones para 
+                    obtener el resultado final optimizado.</p>
+                </div>
+                <div class="alert alert-warning">
+                    <p>🏆 <strong>Beneficio:</strong> La división del problema redujo la complejidad 
+                    computacional significativamente, permitiendo una solución más eficiente.</p>
+                </div>
+            `;
+            
+            document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>

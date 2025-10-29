@@ -29,7 +29,7 @@ public class EquipoController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Equipo> obtenerEquipoPorId(@PathVariable Long id) {
+    public ResponseEntity<Equipo> obtenerEquipoPorId(@PathVariable String id) {
         Equipo equipo = ligaService.obtenerEquipoPorId(id);
         if (equipo != null) {
             return ResponseEntity.ok(equipo);

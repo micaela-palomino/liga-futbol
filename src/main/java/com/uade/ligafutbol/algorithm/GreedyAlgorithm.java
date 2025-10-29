@@ -1,27 +1,18 @@
 package com.uade.ligafutbol.algorithm;
 
 import com.uade.ligafutbol.model.Equipo;
-import com.uade.ligafutbol.model.Estadio;
-import com.uade.ligafutbol.model.Partido;
+
 import com.uade.ligafutbol.model.ConexionEquipo;
-import com.uade.ligafutbol.model.ConexionEstadio;
 import org.springframework.stereotype.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Algoritmo Greedy para emparejar partidos minimizando distancias
- * Implementa múltiples estrategias greedy para optimización de calendarios deportivos
  */
 @Component
 public class GreedyAlgorithm {
-    
-    private static final Logger logger = LoggerFactory.getLogger(GreedyAlgorithm.class);
-    private static final double DISTANCIA_MAXIMA_DEFAULT = 1000.0;
     
     /**
      * Empareja equipos para partidos minimizando la distancia total

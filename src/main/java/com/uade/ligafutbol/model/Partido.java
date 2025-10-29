@@ -1,6 +1,5 @@
 package com.uade.ligafutbol.model;
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -9,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Node
 @Data
@@ -17,8 +17,7 @@ import java.time.LocalDateTime;
 public class Partido {
     
     @Id
-    @GeneratedValue
-    private Long id;
+    private String id = UUID.randomUUID().toString();
     
     @Relationship(type = "EQUIPO_LOCAL", direction = Relationship.Direction.OUTGOING)
     private Equipo equipoLocal;

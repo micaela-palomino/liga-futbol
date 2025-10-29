@@ -1,25 +1,26 @@
 package com.uade.ligafutbol.model;
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Node
 @Data
+@EqualsAndHashCode(exclude = "conexiones")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Estadio {
     
     @Id
-    @GeneratedValue
-    private Long id;
+    private String id = UUID.randomUUID().toString();
     
     private String nombre;
     private String ciudad;

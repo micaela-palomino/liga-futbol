@@ -198,10 +198,11 @@ public class BranchBoundAlgorithm {
     }
     
     private String generarKeyPartido(Equipo eq1, Equipo eq2) {
-        long id1 = eq1.getId() != null ? eq1.getId() : eq1.hashCode();
-        long id2 = eq2.getId() != null ? eq2.getId() : eq2.hashCode();
-        
-        if (id1 < id2) {
+        String id1 = eq1.getId() != null ? eq1.getId() : String.valueOf(eq1.hashCode());
+        String id2 = eq2.getId() != null ? eq2.getId() : String.valueOf(eq2.hashCode());
+
+        // deterministic ordering: lexicographical
+        if (id1.compareTo(id2) < 0) {
             return id1 + "-" + id2;
         } else {
             return id2 + "-" + id1;

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmo Greedy - Liga Fútbol</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .algorithm-info {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        .result-card {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="/web/">
+                <i class="fas fa-bolt me-2"></i>⚡ Algoritmo Greedy - Estrategia Rápida ⚽
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/web/">
+                    <i class="fas fa-home"></i> 🏠 Volver al Campo Principal
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Algorithm Info -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card algorithm-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2><i class="fas fa-bolt"></i> ⚡ Algoritmo Greedy ⚽</h2>
+                                <p class="mb-0">
+                                    🏃‍♂️ Este algoritmo funciona como un entrenador que toma decisiones rápidas en cada jugada. 
+                                    Empareja equipos minimizando las distancias de viaje, como organizar partidos locales para 
+                                    reducir costos de transporte. ⚽ ¡Estrategia voraz pero efectiva! 🚀
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="badge bg-light text-success p-3 fs-5">
+                                    <i class="fas fa-trophy"></i> 🏆 Puntuación: 1 punto
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i>
+            ¡Algoritmo ejecutado exitosamente!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <!-- Configuration Panel -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-cog"></i> Configuración</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/web/greedy/ejecutar}" method="post">
+                            <!-- Fecha de Inicio -->
+                            <div class="mb-3">
+                                <label for="fechaInicio" class="form-label">
+                                    <i class="fas fa-calendar"></i> Fecha de Inicio
+                                </label>
+                                <input type="datetime-local" 
+                                       class="form-control" 
+                                       id="fechaInicio" 
+                                       name="fechaInicio" 
+                                       th:value="${fechaActual}" 
+                                       required>
+                            </div>
+
+                            <!-- Selección de Equipos -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-users"></i> Equipos Participantes
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="todosEquipos" checked>
+                                    <label class="form-check-label" for="todosEquipos">
+                                        Todos los equipos disponibles
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-play"></i> Ejecutar Algoritmo Greedy
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Panel -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-info-circle"></i> ¿Cómo funciona el Algoritmo Greedy?</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>El algoritmo Greedy (voraz) funciona de la siguiente manera:</p>
+                        <ol>
+                            <li><strong>Inicialización:</strong> Toma la lista de todos los equipos disponibles</li>
+                            <li><strong>Selección voraz:</strong> En cada iteración, elige el par de equipos con menor distancia entre sus estadios</li>
+                            <li><strong>Emparejamiento:</strong> Crea un partido entre estos dos equipos</li>
+                            <li><strong>Eliminación:</strong> Remueve los equipos emparejados de la lista disponible</li>
+                            <li><strong>Repetición:</strong> Continúa hasta que no quedan equipos por emparejar</li>
+                        </ol>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-lightbulb"></i>
+                            <strong>Ventajas:</strong> Rápido y simple de implementar<br>
+                            <strong>Desventajas:</strong> No garantiza la solución óptima global
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-success mt-5 py-4">
+        <div class="container text-center">
+            <p class="text-white mb-0">
+                ⚽ © 2024 Liga Fútbol - Algoritmo Greedy ⚡<br>
+                <small>🏃‍♂️ "En el fútbol y en Greedy, las decisiones rápidas marcan la diferencia" ⚽</small>
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
+                                    las distancias totales de viaje. En cada paso, selecciona la mejor opción local 
+                                    disponible sin considerar el impacto futuro.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="badge bg-light text-success p-3 fs-5">
+                                    <i class="fas fa-trophy"></i> Puntuación: 1 punto
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i>
+            ¡Algoritmo ejecutado exitosamente!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <!-- Configuration Panel -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-cog"></i> Configuración</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/web/greedy/ejecutar}" method="post">
+                            <!-- Fecha de Inicio -->
+                            <div class="mb-3">
+                                <label for="fechaInicio" class="form-label">
+                                    <i class="fas fa-calendar"></i> Fecha de Inicio
+                                </label>
+                                <input type="datetime-local" 
+                                       class="form-control" 
+                                       id="fechaInicio" 
+                                       name="fechaInicio" 
+                                       th:value="${fechaInicio ?: fechaActual}" 
+                                       required>
+                            </div>
+
+                            <!-- Selección de Equipos -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-users"></i> Equipos Participantes
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="todosEquipos" checked>
+                                    <label class="form-check-label" for="todosEquipos">
+                                        Todos los equipos (<span th:text="${#lists.size(equipos)}">0</span>)
+                                    </label>
+                                </div>
+                                
+                                <div class="mt-2" id="equiposContainer" style="display: none;">
+                                    <div class="form-check" th:each="equipo : ${equipos}">
+                                        <input class="form-check-input equipo-checkbox" 
+                                               type="checkbox" 
+                                               th:id="'equipo' + ${equipo.id}" 
+                                               th:value="${equipo.id}" 
+                                               name="equiposSeleccionados">
+                                        <label class="form-check-label" th:for="'equipo' + ${equipo.id}">
+                                            <span th:text="${equipo.nombre}">Equipo</span>
+                                            <small class="text-muted" th:text="'(' + ${equipo.ciudad} + ')'"></small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-play"></i> Ejecutar Algoritmo
+                            </button>
+                        </form>
+
+                        <!-- Algorithm Stats -->
+                        <div class="mt-4">
+                            <h6>Estadísticas del Algoritmo:</h6>
+                            <ul class="list-unstyled small">
+                                <li><i class="fas fa-clock text-success"></i> Complejidad: O(n²)</li>
+                                <li><i class="fas fa-memory text-info"></i> Memoria: O(n)</li>
+                                <li><i class="fas fa-chart-line text-warning"></i> Optimización: Local</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-list"></i> Resultados</h5>
+                        <div th:if="${resultado}">
+                            <span class="badge bg-success" th:text="${#lists.size(resultado)} + ' partidos generados'">
+                                0 partidos
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${not resultado}" class="text-center text-muted py-5">
+                            <i class="fas fa-play-circle fa-3x mb-3"></i>
+                            <p>Configura los parámetros y ejecuta el algoritmo para ver los resultados.</p>
+                        </div>
+
+                        <div th:if="${resultado}" class="result-card">
+                            <!-- Summary -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-success" th:text="${#lists.size(resultado)}">0</h4>
+                                        <small class="text-muted">Partidos Generados</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-info" 
+                                            th:text="${#numbers.formatDecimal(
+                                                #lists.isEmpty(resultado) ? 0 : 
+                                                (resultado.stream().mapToDouble(p -> p.distancia).sum()), 
+                                                1, 2)}">
+                                            0.00
+                                        </h4>
+                                        <small class="text-muted">Distancia Total</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-warning" 
+                                            th:text="${#numbers.formatDecimal(
+                                                #lists.isEmpty(resultado) ? 0 : 
+                                                (resultado.stream().mapToDouble(p -> p.distancia).average().orElse(0)), 
+                                                1, 2)}">
+                                            0.00
+                                        </h4>
+                                        <small class="text-muted">Distancia Promedio</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Matches List -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div th:each="partido, iterStat : ${resultado}" class="match-card card mb-2">
+                                        <div class="card-body py-2">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-1 text-center">
+                                                    <span class="badge bg-primary" th:text="${iterStat.count}">1</span>
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <strong th:text="${partido.equipoLocal.nombre}">Equipo Local</strong>
+                                                    <br>
+                                                    <small class="text-muted" th:text="${partido.equipoLocal.ciudad}">Ciudad</small>
+                                                </div>
+                                                <div class="col-md-1 text-center">
+                                                    <span class="text-muted">vs</span>
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <strong th:text="${partido.equipoVisitante.nombre}">Equipo Visitante</strong>
+                                                    <br>
+                                                    <small class="text-muted" th:text="${partido.equipoVisitante.ciudad}">Ciudad</small>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-2">
+                                                <div class="col-md-6">
+                                                    <small class="text-info">
+                                                        <i class="fas fa-calendar"></i> 
+                                                        <span th:text="${#temporals.format(partido.fecha, 'dd/MM/yyyy HH:mm')}">
+                                                            Fecha
+                                                        </span>
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-6 text-end">
+                                                    <small class="text-success">
+                                                        <i class="fas fa-route"></i> 
+                                                        <span th:text="${#numbers.formatDecimal(partido.distancia, 1, 2)} + ' km'">
+                                                            0 km
+                                                        </span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-3">
+        <div class="container text-center">
+            <small class="text-muted">
+                Algoritmo Greedy - Optimización Local para Emparejamiento de Equipos
+            </small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle equipment selection
+        document.getElementById('todosEquipos').addEventListener('change', function() {
+            const container = document.getElementById('equiposContainer');
+            const checkboxes = document.querySelectorAll('.equipo-checkbox');
+            
+            if (this.checked) {
+                container.style.display = 'none';
+                checkboxes.forEach(cb => cb.disabled = true);
+            } else {
+                container.style.display = 'block';
+                checkboxes.forEach(cb => cb.disabled = false);
+            }
+        });
+
+        // Set default datetime
+        document.addEventListener('DOMContentLoaded', function() {
+            const fechaInput = document.getElementById('fechaInicio');
+            if (!fechaInput.value) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                fechaInput.value = now.toISOString().slice(0, 16);
+            }
+        });
+    </script>
+</body>
+</html>

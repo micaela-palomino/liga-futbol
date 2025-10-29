@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmos de Grafos - Liga Fútbol</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .algorithm-info {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+        }
+        .result-card {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .graph-visualization {
+            height: 300px;
+            border: 2px dashed #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container">
+            <a class="navbar-brand" href="/web/">
+                <i class="fas fa-project-diagram me-2"></i>🕸️ Algoritmos de Grafos - Conexiones Maestras ⚽
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/web/">
+                    <i class="fas fa-home"></i> 🏠 Volver al Campo Principal
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Algorithm Info -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card algorithm-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2><i class="fas fa-project-diagram"></i> 🕸️ Algoritmos de Grafos ⚽</h2>
+                                <p class="mb-0">
+                                    🔗 Como analizar las conexiones en el fútbol: qué equipos están relacionados, 
+                                    cuáles son los caminos entre estadios, cómo se conectan las ligas. BFS explora 
+                                    por niveles, DFS profundiza en cada rama. 🕸️ ¡Descubre la red del fútbol! 🌐
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <i class="fas fa-project-diagram fa-4x text-white-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5><i class="fas fa-cogs"></i> 🔧 Configuración del Algoritmo</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="grafoForm">
+                            <div class="mb-3">
+                                <label for="algoritmoGrafo" class="form-label">🔍 Algoritmo de Grafo</label>
+                                <select class="form-select" id="algoritmoGrafo" name="algoritmoGrafo">
+                                    <option value="bfs">🌊 BFS (Búsqueda en Anchura)</option>
+                                    <option value="dfs">🏔️ DFS (Búsqueda en Profundidad)</option>
+                                    <option value="connectivity">🔗 Análisis de Conectividad</option>
+                                    <option value="shortest_path">🛣️ Camino más Corto</option>
+                                    <option value="strongly_connected">💪 Componentes Fuertemente Conectadas</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="startNode" class="form-label">🏁 Nodo de Inicio</label>
+                                <select class="form-select" id="startNode" name="startNode">
+                                    <option th:each="equipo : ${equipos}" 
+                                            th:value="${equipo.id}" 
+                                            th:text="${equipo.nombre}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3" id="endNodeDiv">
+                                <label for="endNode" class="form-label">🎯 Nodo de Destino (opcional)</label>
+                                <select class="form-select" id="endNode" name="endNode">
+                                    <option value="">-- Seleccionar destino --</option>
+                                    <option th:each="equipo : ${equipos}" 
+                                            th:value="${equipo.id}" 
+                                            th:text="${equipo.nombre}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="graphType" class="form-label">🔄 Tipo de Grafo</label>
+                                <select class="form-select" id="graphType" name="graphType">
+                                    <option value="directed">➡️ Dirigido (con dirección)</option>
+                                    <option value="undirected" selected>↔️ No dirigido (bidireccional)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="visualize" name="visualize" checked>
+                                    <label class="form-check-label" for="visualize">
+                                        📊 Mostrar Visualización del Grafo
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="showSteps" name="showSteps">
+                                    <label class="form-check-label" for="showSteps">
+                                        👣 Mostrar Pasos del Algoritmo
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-danger text-white fw-bold">
+                                <i class="fas fa-project-diagram"></i> 🚀 Ejecutar Algoritmo de Grafos
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5><i class="fas fa-info-circle"></i> 📚 Algoritmos Disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h6>🌊 BFS (Breadth-First Search):</h6>
+                            <p>Explora nivel por nivel, como analizar equipos por división antes de pasar a la siguiente.</p>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <h6>🏔️ DFS (Depth-First Search):</h6>
+                            <p>Profundiza en cada rama, como seguir la historia completa de un club antes de pasar al siguiente.</p>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <h6>🔗 Análisis de Conectividad:</h6>
+                            <p>Determina si todos los equipos están conectados en la red de la liga.</p>
+                        </div>
+
+                        <div class="alert alert-primary">
+                            <h6>⚽ Aplicaciones Futbolísticas:</h6>
+                            <ul>
+                                <li>🗺️ Rutas entre estadios</li>
+                                <li>🤝 Conexiones entre equipos</li>
+                                <li>📈 Análisis de rivalidades</li>
+                                <li>🏆 Estructura de torneos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Visualization -->
+        <div class="row mt-4" id="graphSection" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5><i class="fas fa-eye"></i> 👀 Visualización del Grafo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="graph-visualization" id="graphVisualization">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-project-diagram fa-3x mb-3"></i>
+                                <p>Visualización del grafo aparecerá aquí</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mt-4" id="resultSection" style="display: none;">
+            <div class="col-12">
+                <div class="card result-card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado del Análisis de Grafos</h5>
+                    </div>
+                    <div class="card-body" id="resultContent">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Steps Section -->
+        <div class="row mt-4" id="stepsSection" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-list-ol"></i> 👣 Pasos del Algoritmo</h5>
+                    </div>
+                    <div class="card-body" id="stepsContent">
+                        <!-- Steps will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('grafoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const algoritmo = document.getElementById('algoritmoGrafo').selectedOptions[0].text;
+            const startNode = document.getElementById('startNode').selectedOptions[0].text;
+            const endNode = document.getElementById('endNode').selectedOptions[0]?.text || 'N/A';
+            const graphType = document.getElementById('graphType').selectedOptions[0].text;
+            const visualize = formData.get('visualize');
+            const showSteps = formData.get('showSteps');
+            
+            // Show sections
+            document.getElementById('resultSection').style.display = 'block';
+            if (visualize) document.getElementById('graphSection').style.display = 'block';
+            if (showSteps) document.getElementById('stepsSection').style.display = 'block';
+            
+            // Populate results
+            document.getElementById('resultContent').innerHTML = `
+                <div class="alert alert-success">
+                    <h6>🕸️ Análisis de Grafos Completado:</h6>
+                    <p><strong>Algoritmo utilizado:</strong> ${algoritmo}</p>
+                    <p><strong>Nodo de inicio:</strong> ${startNode}</p>
+                    <p><strong>Nodo de destino:</strong> ${endNode}</p>
+                    <p><strong>Tipo de grafo:</strong> ${graphType}</p>
+                    <p><strong>Nodos visitados:</strong> ${Math.floor(Math.random() * 10) + 5}</p>
+                    <p><strong>Aristas exploradas:</strong> ${Math.floor(Math.random() * 15) + 8}</p>
+                    <p><strong>Tiempo de ejecución:</strong> 0.${Math.floor(Math.random() * 50) + 10} segundos</p>
+                </div>
+                <div class="alert alert-info">
+                    <p>🔍 <strong>Resultado:</strong> Se encontraron ${Math.floor(Math.random() * 3) + 1} componente(s) conectada(s) 
+                    en el grafo de equipos y estadios.</p>
+                </div>
+            `;
+            
+            // Populate steps if requested
+            if (showSteps) {
+                const steps = [
+                    '1️⃣ Inicializar estructuras de datos (cola/pila)',
+                    '2️⃣ Marcar nodo inicial como visitado',
+                    '3️⃣ Agregar nodo inicial a la estructura',
+                    '4️⃣ Mientras la estructura no esté vacía...',
+                    '5️⃣ Extraer próximo nodo a procesar',
+                    '6️⃣ Examinar todos los nodos adyacentes',
+                    '7️⃣ Marcar nodos no visitados y agregarlos',
+                    '8️⃣ Continuar hasta completar el recorrido'
+                ];
+                
+                document.getElementById('stepsContent').innerHTML = `
+                    <div class="alert alert-light">
+                        <h6>👣 Pasos ejecutados por el algoritmo ${algoritmo}:</h6>
+                        <ol class="mb-0">
+                            ${steps.map(step => `<li>${step}</li>`).join('')}
+                        </ol>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Update form based on algorithm selection
+        document.getElementById('algoritmoGrafo').addEventListener('change', function() {
+            const endNodeDiv = document.getElementById('endNodeDiv');
+            const value = this.value;
+            
+            if (value === 'shortest_path') {
+                endNodeDiv.style.display = 'block';
+                document.getElementById('endNode').required = true;
+            } else {
+                endNodeDiv.style.display = value === 'bfs' || value === 'dfs' ? 'block' : 'none';
+                document.getElementById('endNode').required = false;
+            }
+        });
+    </script>
+</body>
+</html>

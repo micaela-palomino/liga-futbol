@@ -24,16 +24,16 @@ public class AlgorithmController {
     
     @GetMapping("/bfs/{origenId}/{destinoId}")
     public ResponseEntity<List<Equipo>> buscarCaminoBFS(
-            @PathVariable Long origenId,
-            @PathVariable Long destinoId) {
+            @PathVariable String origenId,
+            @PathVariable String destinoId) {
         List<Equipo> camino = ligaService.encontrarCaminoBFS(origenId, destinoId);
         return ResponseEntity.ok(camino);
     }
     
     @GetMapping("/dfs/{origenId}/{destinoId}")
     public ResponseEntity<List<Equipo>> buscarCaminoDFS(
-            @PathVariable Long origenId,
-            @PathVariable Long destinoId) {
+            @PathVariable String origenId,
+            @PathVariable String destinoId) {
         List<Equipo> camino = ligaService.encontrarCaminoDFS(origenId, destinoId);
         return ResponseEntity.ok(camino);
     }
@@ -42,16 +42,16 @@ public class AlgorithmController {
     
     @GetMapping("/dijkstra/equipos/{origenId}/{destinoId}")
     public ResponseEntity<DijkstraAlgorithm.ResultadoDijkstra<Equipo>> rutaMasCorta(
-            @PathVariable Long origenId,
-            @PathVariable Long destinoId) {
+            @PathVariable String origenId,
+            @PathVariable String destinoId) {
         DijkstraAlgorithm.ResultadoDijkstra<Equipo> resultado = ligaService.encontrarRutaMasCorta(origenId, destinoId);
         return ResponseEntity.ok(resultado);
     }
     
     @GetMapping("/dijkstra/estadios/{origenId}/{destinoId}")
     public ResponseEntity<DijkstraAlgorithm.ResultadoDijkstra<Estadio>> rutaMasCortaEstadios(
-            @PathVariable Long origenId,
-            @PathVariable Long destinoId) {
+            @PathVariable String origenId,
+            @PathVariable String destinoId) {
         DijkstraAlgorithm.ResultadoDijkstra<Estadio> resultado = ligaService.encontrarRutaMasCortaEstadios(origenId, destinoId);
         return ResponseEntity.ok(resultado);
     }
