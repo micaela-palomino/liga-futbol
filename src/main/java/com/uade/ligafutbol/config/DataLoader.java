@@ -85,22 +85,18 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        logger.info("🚀 DataLoader iniciado - Aplicación lista para usar");
-        logger.info("📍 Usa /api/database/crear-estructura para crear la estructura");
-        logger.info("📍 Usa /api/database/llenar-datos para llenar con datos");
-        logger.info("📍 Usa /api/database/ejecutar-consultas para ejecutar queries");
-        logger.info("🌐 Interfaz web disponible en: http://localhost:8081/web/");
+        logger.info("🚀 DataLoader iniciado - Cargando datos automáticamente");
         
-        // Carga automática comentada para evitar problemas al arrancar
-        /*
         try {
             cargarDatosIniciales();
-            logger.info("Carga de datos iniciales completada exitosamente.");
+            logger.info("✅ Carga de datos iniciales completada exitosamente.");
+            logger.info("🌐 Interfaz web disponible en: http://localhost:8080/web/");
+            logger.info("⚽ ¡Ya puedes usar Dijkstra con equipos y estadios!");
         } catch (Exception e) {
-            logger.error("Error durante la carga de datos iniciales: {}", e.getMessage(), e);
-            throw e;
+            logger.error("❌ Error durante la carga de datos iniciales: {}", e.getMessage(), e);
+            logger.info("📍 Usa /api/database/crear-estructura para crear la estructura manualmente");
+            logger.info("📍 Usa /api/database/llenar-datos para llenar con datos manualmente");
         }
-        */
     }
 
     private void cargarEstadios() {

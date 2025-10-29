@@ -167,23 +167,39 @@ public class WebInterfaceController {
      */
     @GetMapping("/dijkstra")
     public String dijkstraPage(Model model) {
-        // Página simplificada sin consultas DB para carga rápida
-        model.addAttribute("algoritmo", "Dijkstra");
-        model.addAttribute("status", "ready");
-        return "web/dijkstra_simple";
+        try {
+            // Cargar equipos y estadios para los dropdowns
+            List<Equipo> equipos = ligaService.obtenerTodosLosEquipos();
+            List<Estadio> estadios = ligaService.obtenerTodosLosEstadios();
+            
+            model.addAttribute("equipos", equipos);
+            model.addAttribute("estadios", estadios);
+            model.addAttribute("algoritmo", "Dijkstra");
+            model.addAttribute("status", "ready");
+            
+            return "web/dijkstra";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error al cargar datos: " + e.getMessage());
+            model.addAttribute("algoritmo", "Dijkstra");
+            model.addAttribute("status", "error");
+            return "web/dijkstra";
+        }
     }
 
     /**
      * Ejecutar algoritmo Dijkstra para equipos
      */
     @PostMapping("/dijkstra/equipos")
-    public String ejecutarDijkstraEquipos(@RequestParam Long equipoOrigenId,
-                                        @RequestParam Long equipoDestinoId,
+    public String ejecutarDijkstraEquipos(@RequestParam String equipoOrigenId,
+                                        @RequestParam String equipoDestinoId,
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
-            Equipo origen = ligaService.obtenerEquipoPorId(equipoOrigenId);
-            Equipo destino = ligaService.obtenerEquipoPorId(equipoDestinoId);
+            Long origenId = Long.valueOf(equipoOrigenId);
+            Long destinoId = Long.valueOf(equipoDestinoId);
+            
+            Equipo origen = ligaService.obtenerEquipoPorId(origenId);
+            Equipo destino = ligaService.obtenerEquipoPorId(destinoId);
             
             DijkstraAlgorithm.ResultadoDijkstra<Equipo> resultado = 
                 dijkstraAlgorithm.caminoMasCortoEquipos(origen, destino);
@@ -206,13 +222,16 @@ public class WebInterfaceController {
      * Ejecutar algoritmo Dijkstra para estadios
      */
     @PostMapping("/dijkstra/estadios")
-    public String ejecutarDijkstraEstadios(@RequestParam Long estadioOrigenId,
-                                        @RequestParam Long estadioDestinoId,
+    public String ejecutarDijkstraEstadios(@RequestParam String estadioOrigenId,
+                                        @RequestParam String estadioDestinoId,
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
-            Estadio origen = ligaService.obtenerEstadioPorId(estadioOrigenId);
-            Estadio destino = ligaService.obtenerEstadioPorId(estadioDestinoId);
+            Long origenId = Long.valueOf(estadioOrigenId);
+            Long destinoId = Long.valueOf(estadioDestinoId);
+            
+            Estadio origen = ligaService.obtenerEstadioPorId(origenId);
+            Estadio destino = ligaService.obtenerEstadioPorId(destinoId);
             
             DijkstraAlgorithm.ResultadoDijkstra<Estadio> resultado = 
                 dijkstraAlgorithm.caminoMasCortoEstadios(origen, destino);
@@ -258,6 +277,21 @@ public class WebInterfaceController {
     @ResponseBody
     public List<Estadio> getEstadios() {
         return ligaService.obtenerTodosLosEstadios();
+    }
+
+    /**
+     * Debug endpoint para verificar datos
+     */
+    @GetMapping("/debug")
+    @ResponseBody
+    public Map<String, Object> debug() {
+        Map<String, Object> debug = Map.of(
+            "equipos", ligaService.obtenerTodosLosEquipos(),
+            "estadios", ligaService.obtenerTodosLosEstadios(),
+            "equiposCount", ligaService.obtenerTodosLosEquipos().size(),
+            "estadiosCount", ligaService.obtenerTodosLosEstadios().size()
+        );
+        return debug;
     }
 
     /**
