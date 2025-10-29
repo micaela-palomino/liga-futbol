@@ -88,6 +88,10 @@ public class LigaService {
         return estadioRepository.findById(id.toString()).orElse(null);
     }
     
+    public Estadio obtenerEstadioPorId(String id) {
+        return estadioRepository.findById(id).orElse(null);
+    }
+    
     // ========== Gestión de Partidos ==========
     
     public Partido crearPartido(Partido partido) {

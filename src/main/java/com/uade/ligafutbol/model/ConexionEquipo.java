@@ -34,20 +34,4 @@ public class ConexionEquipo {
         this.costo = costo;
         this.tiempoViaje = tiempoViaje;
     }
-
-    // Getters/setters adicionales para que funcione sin Lombok
-    public Long getId() { return this.id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public Equipo getEquipoDestino() { return this.equipoDestino; }
-    public void setEquipoDestino(Equipo equipoDestino) { this.equipoDestino = equipoDestino; }
-    
-    public Double getDistancia() { return this.distancia; }
-    public void setDistancia(Double distancia) { this.distancia = distancia; }
-    
-    public Double getCosto() { return this.costo; }
-    public void setCosto(Double costo) { this.costo = costo; }
-    
-    public Integer getTiempoViaje() { return this.tiempoViaje; }
-    public void setTiempoViaje(Integer tiempoViaje) { this.tiempoViaje = tiempoViaje; }
 }

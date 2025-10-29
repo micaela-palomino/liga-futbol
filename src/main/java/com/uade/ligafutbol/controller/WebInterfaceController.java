@@ -172,16 +172,22 @@ public class WebInterfaceController {
             List<Equipo> equipos = ligaService.obtenerTodosLosEquipos();
             List<Estadio> estadios = ligaService.obtenerTodosLosEstadios();
             
-            model.addAttribute("equipos", equipos);
-            model.addAttribute("estadios", estadios);
+            model.addAttribute("equipos", equipos != null ? equipos : List.of());
+            model.addAttribute("estadios", estadios != null ? estadios : List.of());
             model.addAttribute("algoritmo", "Dijkstra");
             model.addAttribute("status", "ready");
+            model.addAttribute("equiposCount", equipos != null ? equipos.size() : 0);
+            model.addAttribute("estadiosCount", estadios != null ? estadios.size() : 0);
             
             return "web/dijkstra";
         } catch (Exception e) {
             model.addAttribute("error", "Error al cargar datos: " + e.getMessage());
+            model.addAttribute("equipos", List.of());
+            model.addAttribute("estadios", List.of());
             model.addAttribute("algoritmo", "Dijkstra");
             model.addAttribute("status", "error");
+            model.addAttribute("equiposCount", 0);
+            model.addAttribute("estadiosCount", 0);
             return "web/dijkstra";
         }
     }
@@ -195,11 +201,8 @@ public class WebInterfaceController {
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
-            Long origenId = Long.valueOf(equipoOrigenId);
-            Long destinoId = Long.valueOf(equipoDestinoId);
-            
-            Equipo origen = ligaService.obtenerEquipoPorId(origenId);
-            Equipo destino = ligaService.obtenerEquipoPorId(destinoId);
+            Equipo origen = ligaService.obtenerEquipoPorId(equipoOrigenId);
+            Equipo destino = ligaService.obtenerEquipoPorId(equipoDestinoId);
             
             DijkstraAlgorithm.ResultadoDijkstra<Equipo> resultado = 
                 dijkstraAlgorithm.caminoMasCortoEquipos(origen, destino);
@@ -227,11 +230,8 @@ public class WebInterfaceController {
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
-            Long origenId = Long.valueOf(estadioOrigenId);
-            Long destinoId = Long.valueOf(estadioDestinoId);
-            
-            Estadio origen = ligaService.obtenerEstadioPorId(origenId);
-            Estadio destino = ligaService.obtenerEstadioPorId(destinoId);
+            Estadio origen = ligaService.obtenerEstadioPorId(estadioOrigenId);
+            Estadio destino = ligaService.obtenerEstadioPorId(estadioDestinoId);
             
             DijkstraAlgorithm.ResultadoDijkstra<Estadio> resultado = 
                 dijkstraAlgorithm.caminoMasCortoEstadios(origen, destino);
@@ -285,13 +285,25 @@ public class WebInterfaceController {
     @GetMapping("/debug")
     @ResponseBody
     public Map<String, Object> debug() {
-        Map<String, Object> debug = Map.of(
-            "equipos", ligaService.obtenerTodosLosEquipos(),
-            "estadios", ligaService.obtenerTodosLosEstadios(),
-            "equiposCount", ligaService.obtenerTodosLosEquipos().size(),
-            "estadiosCount", ligaService.obtenerTodosLosEstadios().size()
-        );
-        return debug;
+        try {
+            List<Equipo> equipos = ligaService.obtenerTodosLosEquipos();
+            List<Estadio> estadios = ligaService.obtenerTodosLosEstadios();
+            
+            return Map.of(
+                "equipos", equipos,
+                "estadios", estadios,
+                "equiposCount", equipos.size(),
+                "estadiosCount", estadios.size(),
+                "status", "success"
+            );
+        } catch (Exception e) {
+            return Map.of(
+                "error", e.getMessage(),
+                "status", "error",
+                "equiposCount", 0,
+                "estadiosCount", 0
+            );
+        }
     }
 
     /**

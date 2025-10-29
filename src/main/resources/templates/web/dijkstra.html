@@ -112,7 +112,50 @@
 
                                 <!-- Submit Button -->
                                 <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search"></i> Calcular Ruta Óptima
+                                    <i class="fas fa-search"></i> Calcular Ruta entre Equipos
+                                </button>
+                            </form>
+
+                            <!-- Separator -->
+                            <hr class="my-4">
+
+                            <!-- Estadios Form -->
+                            <form th:action="@{/web/dijkstra/estadios}" method="post">
+                                <h6 class="mb-3"><i class="fas fa-building"></i> Ruta entre Estadios</h6>
+                                
+                                <!-- Estadio Origen -->
+                                <div class="mb-3">
+                                    <label for="estadioOrigenId" class="form-label">
+                                        <i class="fas fa-map-marker-alt"></i> Estadio Origen
+                                    </label>
+                                    <select class="form-select" id="estadioOrigenId" name="estadioOrigenId" required>
+                                        <option value="">Seleccionar estadio origen...</option>
+                                        <option th:each="estadio : ${estadios}" 
+                                                th:value="${estadio.id}" 
+                                                th:text="${estadio.nombre + ' (' + estadio.ubicacion + ')'}">
+                                            Estadio
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Estadio Destino -->
+                                <div class="mb-3">
+                                    <label for="estadioDestinoId" class="form-label">
+                                        <i class="fas fa-flag-checkered"></i> Estadio Destino
+                                    </label>
+                                    <select class="form-select" id="estadioDestinoId" name="estadioDestinoId" required>
+                                        <option value="">Seleccionar estadio destino...</option>
+                                        <option th:each="estadio : ${estadios}" 
+                                                th:value="${estadio.id}" 
+                                                th:text="${estadio.nombre + ' (' + estadio.ubicacion + ')'}">
+                                            Estadio
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Submit Button for Estadios -->
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-building"></i> Calcular Ruta entre Estadios
                                 </button>
                             </form>
                         </div>
@@ -120,7 +163,9 @@
                         <div class="mt-3">
                             <small class="text-muted">
                                 <i class="fas fa-info-circle"></i>
-                                Equipos disponibles: <span th:text="${#lists.size(equipos)}">0</span>
+                                Equipos disponibles: <span th:text="${#lists.size(equipos)}">0</span><br>
+                                <i class="fas fa-building"></i>
+                                Estadios disponibles: <span th:text="${#lists.size(estadios)}">0</span>
                             </small>
                         </div>
                     </div>
@@ -149,6 +194,64 @@
                             <strong>Aplicaciones:</strong> GPS, redes de comunicación, planificación de rutas
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mt-4" th:if="${resultado != null}">
+            <div class="col-12">
+                <div class="card result-card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-route"></i> 🏆 Resultado de Dijkstra</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${tipoResultado == 'equipos'}">
+                            <h6><i class="fas fa-users"></i> Ruta entre Equipos:</h6>
+                            <div class="alert alert-success">
+                                <strong>Distancia Total:</strong> <span th:text="${resultado.distanciaTotal}">0</span> km
+                            </div>
+                            <div class="path-card card mt-3">
+                                <div class="card-body">
+                                    <h6>🛣️ Camino Óptimo:</h6>
+                                    <ol>
+                                        <li th:each="equipo : ${resultado.camino}" class="mb-2">
+                                            <strong th:text="${equipo.nombre}">Equipo</strong>
+                                            <small class="text-muted">(<span th:text="${equipo.ciudad}">Ciudad</span>)</small>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${tipoResultado == 'estadios'}">
+                            <h6><i class="fas fa-building"></i> Ruta entre Estadios:</h6>
+                            <div class="alert alert-success">
+                                <strong>Distancia Total:</strong> <span th:text="${resultado.distanciaTotal}">0</span> km
+                            </div>
+                            <div class="path-card card mt-3">
+                                <div class="card-body">
+                                    <h6>🏟️ Camino Óptimo:</h6>
+                                    <ol>
+                                        <li th:each="estadio : ${resultado.camino}" class="mb-2">
+                                            <strong th:text="${estadio.nombre}">Estadio</strong>
+                                            <small class="text-muted">(<span th:text="${estadio.ubicacion}">Ubicación</span>)</small>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Messages -->
+        <div class="row mt-4" th:if="${error}">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error:</strong> <span th:text="${error}">Error message</span>
                 </div>
             </div>
         </div>

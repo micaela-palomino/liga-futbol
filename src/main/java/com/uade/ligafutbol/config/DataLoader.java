@@ -94,8 +94,8 @@ public class DataLoader implements CommandLineRunner {
             logger.info("⚽ ¡Ya puedes usar Dijkstra con equipos y estadios!");
         } catch (Exception e) {
             logger.error("❌ Error durante la carga de datos iniciales: {}", e.getMessage(), e);
-            logger.info("📍 Usa /api/database/crear-estructura para crear la estructura manualmente");
-            logger.info("📍 Usa /api/database/llenar-datos para llenar con datos manualmente");
+            logger.info("📍 Usa /web/database/crear-estructura para crear la estructura manualmente");
+            logger.info("📍 Usa /web/database/llenar-datos para llenar con datos manualmente");
         }
     }
 
