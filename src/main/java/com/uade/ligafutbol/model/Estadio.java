@@ -38,4 +38,26 @@ public class Estadio {
         this.latitud = latitud;
         this.longitud = longitud;
     }
+
+    // Getters/setters adicionales para que funcione sin Lombok
+    public String getId() { return this.id; }
+    public void setId(String id) { this.id = id; }
+    
+    public String getNombre() { return this.nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    
+    public String getCiudad() { return this.ciudad; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
+    
+    public Integer getCapacidad() { return this.capacidad; }
+    public void setCapacidad(Integer capacidad) { this.capacidad = capacidad; }
+    
+    public Double getLatitud() { return this.latitud; }
+    public void setLatitud(Double latitud) { this.latitud = latitud; }
+    
+    public Double getLongitud() { return this.longitud; }
+    public void setLongitud(Double longitud) { this.longitud = longitud; }
+    
+    public Set<ConexionEstadio> getConexiones() { return this.conexiones; }
+    public void setConexiones(Set<ConexionEstadio> conexiones) { this.conexiones = conexiones; }
 }

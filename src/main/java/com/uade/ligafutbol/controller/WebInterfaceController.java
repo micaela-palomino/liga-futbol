@@ -371,6 +371,15 @@ public class WebInterfaceController {
     }
 
     /**
+     * Página de gestión de base de datos
+     */
+    @GetMapping("/database-management")
+    public String databaseManagement(Model model) {
+        model.addAttribute("pageTitle", "🗄️ Gestión de Base de Datos - Liga de Fútbol");
+        return "web/database-management";
+    }
+
+    /**
      * Información sobre los algoritmos disponibles
      */
     private Map<String, String> getAlgoritmosDisponibles() {

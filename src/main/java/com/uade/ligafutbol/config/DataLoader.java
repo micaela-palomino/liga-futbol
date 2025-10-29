@@ -32,24 +32,75 @@ public class DataLoader implements CommandLineRunner {
     @Autowired
     private PartidoRepository partidoRepository;
 
+    /**
+     * Limpia todas las tablas de la base de datos
+     */
+    public void limpiarTodasLasTablas() {
+        logger.info("🧹 Iniciando limpieza completa de la base de datos...");
+        
+        try {
+            // Limpiar en orden inverso por las dependencias
+            logger.info("Eliminando partidos...");
+            partidoRepository.deleteAll();
+            
+            logger.info("Eliminando equipos...");
+            equipoRepository.deleteAll();
+            
+            logger.info("Eliminando estadios...");
+            estadioRepository.deleteAll();
+            
+            logger.info("✅ Limpieza completa finalizada exitosamente.");
+        } catch (Exception e) {
+            logger.error("❌ Error durante la limpieza: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * Recarga completa de datos: limpia y vuelve a cargar todo
+     */
+    public void recargarDatosCompletos() throws Exception {
+        logger.info("🔄 Iniciando recarga completa de datos...");
+        
+        limpiarTodasLasTablas();
+        cargarDatosIniciales();
+        
+        logger.info("🎉 Recarga completa finalizada exitosamente.");
+    }
+
+    /**
+     * Carga los datos iniciales (método extraído del run original)
+     */
+    public void cargarDatosIniciales() throws Exception {
+        logger.info("📊 Cargando datos iniciales...");
+        
+        cargarEstadios();
+        cargarConexionesEstadios();
+        cargarEquipos();
+        cargarConexionesEquipos();
+        cargarPartidos();
+        
+        logger.info("✅ Datos iniciales cargados exitosamente.");
+    }
+
     @Override
     public void run(String... args) throws Exception {
-        logger.info("Iniciando carga de datos iniciales...");
-
-        // Always attempt idempotent upserts so the loader can be run multiple times.
-        // This replaces the previous shortcut that skipped loading when any equipos existed.
-
+        logger.info("🚀 DataLoader iniciado - Aplicación lista para usar");
+        logger.info("📍 Usa /api/database/crear-estructura para crear la estructura");
+        logger.info("📍 Usa /api/database/llenar-datos para llenar con datos");
+        logger.info("📍 Usa /api/database/ejecutar-consultas para ejecutar queries");
+        logger.info("🌐 Interfaz web disponible en: http://localhost:8081/web/");
+        
+        // Carga automática comentada para evitar problemas al arrancar
+        /*
         try {
-            cargarEstadios();
-            cargarConexionesEstadios();
-            cargarEquipos();
-            cargarConexionesEquipos();
-            cargarPartidos();
+            cargarDatosIniciales();
             logger.info("Carga de datos iniciales completada exitosamente.");
         } catch (Exception e) {
             logger.error("Error durante la carga de datos iniciales: {}", e.getMessage(), e);
             throw e;
         }
+        */
     }
 
     private void cargarEstadios() {

@@ -61,4 +61,32 @@ public class Partido {
             equipoVisitante.registrarEmpate(golesVisitante, golesLocal);
         }
     }
+
+    // Getters/setters adicionales para que funcione sin Lombok
+    public String getId() { return this.id; }
+    public void setId(String id) { this.id = id; }
+    
+    public Equipo getEquipoLocal() { return this.equipoLocal; }
+    public void setEquipoLocal(Equipo equipoLocal) { this.equipoLocal = equipoLocal; }
+    
+    public Equipo getEquipoVisitante() { return this.equipoVisitante; }
+    public void setEquipoVisitante(Equipo equipoVisitante) { this.equipoVisitante = equipoVisitante; }
+    
+    public Estadio getEstadio() { return this.estadio; }
+    public void setEstadio(Estadio estadio) { this.estadio = estadio; }
+    
+    public LocalDateTime getFecha() { return this.fecha; }
+    public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+    
+    public Integer getGolesLocal() { return this.golesLocal; }
+    public void setGolesLocal(Integer golesLocal) { this.golesLocal = golesLocal; }
+    
+    public Integer getGolesVisitante() { return this.golesVisitante; }
+    public void setGolesVisitante(Integer golesVisitante) { this.golesVisitante = golesVisitante; }
+    
+    public Boolean getJugado() { return this.jugado; }
+    public void setJugado(Boolean jugado) { this.jugado = jugado; }
+    
+    public Integer getJornada() { return this.jornada; }
+    public void setJornada(Integer jornada) { this.jornada = jornada; }
 }

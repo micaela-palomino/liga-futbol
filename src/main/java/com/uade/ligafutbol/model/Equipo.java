@@ -98,4 +98,35 @@ public class Equipo {
     public void setPartidosJugados(Integer partidosJugados) {
         this.partidosJugados = partidosJugados;
     }
+
+    // Getters/setters adicionales para que funcione sin Lombok
+    public String getId() { return this.id; }
+    public void setId(String id) { this.id = id; }
+    
+    public String getNombre() { return this.nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    
+    public String getCiudad() { return this.ciudad; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
+    
+    public Integer getPartidosGanados() { return this.partidosGanados; }
+    public void setPartidosGanados(Integer partidosGanados) { this.partidosGanados = partidosGanados; }
+    
+    public Integer getPartidosEmpatados() { return this.partidosEmpatados; }
+    public void setPartidosEmpatados(Integer partidosEmpatados) { this.partidosEmpatados = partidosEmpatados; }
+    
+    public Integer getPartidosPerdidos() { return this.partidosPerdidos; }
+    public void setPartidosPerdidos(Integer partidosPerdidos) { this.partidosPerdidos = partidosPerdidos; }
+    
+    public Integer getGolesAFavor() { return this.golesAFavor; }
+    public void setGolesAFavor(Integer golesAFavor) { this.golesAFavor = golesAFavor; }
+    
+    public Integer getGolesEnContra() { return this.golesEnContra; }
+    public void setGolesEnContra(Integer golesEnContra) { this.golesEnContra = golesEnContra; }
+    
+    public Estadio getEstadio() { return this.estadio; }
+    public void setEstadio(Estadio estadio) { this.estadio = estadio; }
+    
+    public Set<ConexionEquipo> getConexiones() { return this.conexiones; }
+    public void setConexiones(Set<ConexionEquipo> conexiones) { this.conexiones = conexiones; }
 }
