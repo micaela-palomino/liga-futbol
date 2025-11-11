@@ -1,9 +1,7 @@
 package com.uade.ligafutbol.service;
 
 import com.uade.ligafutbol.algorithm.*;
-import com.uade.ligafutbol.model.Equipo;
-import com.uade.ligafutbol.model.Estadio;
-import com.uade.ligafutbol.model.Partido;
+import com.uade.ligafutbol.model.*;
 import com.uade.ligafutbol.repository.EquipoRepository;
 import com.uade.ligafutbol.repository.EstadioRepository;
 import com.uade.ligafutbol.repository.PartidoRepository;
@@ -11,10 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class LigaService {
+    
+    // Datos de simulación para cuando Neo4j no esté disponible
+    private static List<Equipo> equiposSimulados;
+    private static List<Estadio> estadiosSimulados;
     
     @Autowired
     private EquipoRepository equipoRepository;

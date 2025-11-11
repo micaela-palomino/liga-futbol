@@ -168,9 +168,18 @@ public class WebInterfaceController {
     @GetMapping("/dijkstra")
     public String dijkstraPage(Model model) {
         try {
+            System.out.println("🔍 DEBUG: Cargando página Dijkstra");
+            
             // Cargar equipos y estadios para los dropdowns
             List<Equipo> equipos = ligaService.obtenerTodosLosEquipos();
             List<Estadio> estadios = ligaService.obtenerTodosLosEstadios();
+            
+            System.out.println("🔍 DEBUG: Equipos encontrados: " + (equipos != null ? equipos.size() : "NULL"));
+            System.out.println("🔍 DEBUG: Estadios encontrados: " + (estadios != null ? estadios.size() : "NULL"));
+            
+            if (equipos != null && !equipos.isEmpty()) {
+                System.out.println("🔍 DEBUG: Primer equipo: " + equipos.get(0).getNombre());
+            }
             
             model.addAttribute("equipos", equipos != null ? equipos : List.of());
             model.addAttribute("estadios", estadios != null ? estadios : List.of());
@@ -179,8 +188,11 @@ public class WebInterfaceController {
             model.addAttribute("equiposCount", equipos != null ? equipos.size() : 0);
             model.addAttribute("estadiosCount", estadios != null ? estadios.size() : 0);
             
+            System.out.println("🔍 DEBUG: Modelo configurado para página Dijkstra");
             return "web/dijkstra";
         } catch (Exception e) {
+            System.err.println("❌ ERROR en página Dijkstra: " + e.getMessage());
+            e.printStackTrace();
             model.addAttribute("error", "Error al cargar datos: " + e.getMessage());
             model.addAttribute("equipos", List.of());
             model.addAttribute("estadios", List.of());
@@ -201,11 +213,24 @@ public class WebInterfaceController {
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
+            System.out.println("🔍 DEBUG: Iniciando Dijkstra para equipos");
+            System.out.println("🔍 DEBUG: Origen ID: " + equipoOrigenId + ", Destino ID: " + equipoDestinoId);
+            
             Equipo origen = ligaService.obtenerEquipoPorId(equipoOrigenId);
             Equipo destino = ligaService.obtenerEquipoPorId(equipoDestinoId);
             
+            System.out.println("🔍 DEBUG: Origen encontrado: " + (origen != null ? origen.getNombre() : "NULL"));
+            System.out.println("🔍 DEBUG: Destino encontrado: " + (destino != null ? destino.getNombre() : "NULL"));
+            
             DijkstraAlgorithm.ResultadoDijkstra<Equipo> resultado = 
                 dijkstraAlgorithm.caminoMasCortoEquipos(origen, destino);
+            
+            System.out.println("🔍 DEBUG: Resultado obtenido: " + (resultado != null ? "OK" : "NULL"));
+            if (resultado != null) {
+                System.out.println("🔍 DEBUG: Distancia total: " + resultado.getDistanciaTotal());
+                System.out.println("🔍 DEBUG: Cantidad de nodos en el camino: " + 
+                    (resultado.getCamino() != null ? resultado.getCamino().size() : "NULL"));
+            }
             
             model.addAttribute("resultado", resultado);
             model.addAttribute("equipos", ligaService.obtenerTodosLosEquipos());
@@ -213,9 +238,12 @@ public class WebInterfaceController {
             model.addAttribute("tipoResultado", "equipos");
             model.addAttribute("success", true);
             
+            System.out.println("🔍 DEBUG: Modelo configurado, retornando template");
             return "web/dijkstra";
             
         } catch (Exception e) {
+            System.err.println("❌ ERROR en Dijkstra equipos: " + e.getMessage());
+            e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Error al ejecutar Dijkstra: " + e.getMessage());
             return "redirect:/web/dijkstra";
         }

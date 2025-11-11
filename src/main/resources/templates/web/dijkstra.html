@@ -132,7 +132,7 @@
                                         <option value="">Seleccionar estadio origen...</option>
                                         <option th:each="estadio : ${estadios}" 
                                                 th:value="${estadio.id}" 
-                                                th:text="${estadio.nombre + ' (' + estadio.ubicacion + ')'}">
+                                                th:text="${estadio.nombre + ' (' + estadio.ciudad + ')'}">
                                             Estadio
                                         </option>
                                     </select>
@@ -147,7 +147,7 @@
                                         <option value="">Seleccionar estadio destino...</option>
                                         <option th:each="estadio : ${estadios}" 
                                                 th:value="${estadio.id}" 
-                                                th:text="${estadio.nombre + ' (' + estadio.ubicacion + ')'}">
+                                                th:text="${estadio.nombre + ' (' + estadio.ciudad + ')'}">
                                             Estadio
                                         </option>
                                     </select>
@@ -235,7 +235,7 @@
                                     <ol>
                                         <li th:each="estadio : ${resultado.camino}" class="mb-2">
                                             <strong th:text="${estadio.nombre}">Estadio</strong>
-                                            <small class="text-muted">(<span th:text="${estadio.ubicacion}">Ubicación</span>)</small>
+                                            <small class="text-muted">(<span th:text="${estadio.ciudad}">Ciudad</span>)</small>
                                         </li>
                                     </ol>
                                 </div>
