@@ -13,11 +13,7 @@ import java.util.*;
 
 @Service
 public class LigaService {
-    
-    // Datos de simulación para cuando Neo4j no esté disponible
-    private static List<Equipo> equiposSimulados;
-    private static List<Estadio> estadiosSimulados;
-    
+
     @Autowired
     private EquipoRepository equipoRepository;
     
@@ -92,6 +88,13 @@ public class LigaService {
     
     public Estadio obtenerEstadioPorId(String id) {
         return estadioRepository.findById(id).orElse(null);
+    }
+    
+    public List<Estadio> obtenerEstadiosPorIds(List<Long> ids) {
+        return ids.stream()
+                .map(id -> estadioRepository.findById(id.toString()).orElse(null))
+                .filter(estadio -> estadio != null)
+                .toList();
     }
     
     // ========== Gestión de Partidos ==========

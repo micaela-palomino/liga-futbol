@@ -67,7 +67,7 @@
                         <h5><i class="fas fa-cogs"></i> 🔧 Configuración del Algoritmo</h5>
                     </div>
                     <div class="card-body">
-                        <form id="branchBoundForm">
+                        <form th:action="@{/web/branch-bound/ejecutar}" method="post">
                             <div class="mb-3">
                                 <label for="equipos" class="form-label">🏆 Seleccionar Equipos</label>
                                 <select class="form-select" id="equipos" name="equipos" multiple size="4">
@@ -76,14 +76,21 @@
                                             th:text="${equipo.nombre}">
                                     </option>
                                 </select>
-                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples equipos</div>
+                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples equipos (vacío = todos)</div>
                             </div>
 
                             <div class="mb-3">
-                                <label for="maxDepth" class="form-label">🌊 Profundidad Máxima</label>
+                                <label for="maxDepth" class="form-label">🌊 Fechas a Optimizar</label>
                                 <input type="number" class="form-control" id="maxDepth" name="maxDepth" 
-                                       value="5" min="1" max="10">
-                                <div class="form-text">Limita la exploración del árbol de decisiones</div>
+                                       value="3" min="1" max="8">
+                                <div class="form-text">Número de fechas/jornadas para el calendario optimizado</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="presupuesto" class="form-label">💰 Presupuesto Máximo</label>
+                                <input type="number" class="form-control" id="presupuesto" name="presupuesto" 
+                                       value="1000" min="100" max="10000" step="100">
+                                <div class="form-text">Límite de costo total para los viajes</div>
                             </div>
 
                             <div class="mb-3">
@@ -96,7 +103,7 @@
                             </div>
 
                             <button type="submit" class="btn btn-warning text-dark fw-bold">
-                                <i class="fas fa-sitemap"></i> 🚀 Ejecutar Branch & Bound
+                                <i class="fas fa-sitemap"></i> 🚀 Ejecutar Branch & Bound REAL
                             </button>
                         </form>
                     </div>
@@ -129,16 +136,126 @@
             </div>
         </div>
 
-        <!-- Results Section -->
-        <div class="row mt-4" id="resultSection" style="display: none;">
+        <!-- Real Results Section (shown when algorithm is executed) -->
+        <div th:if="${resultado}" class="row mt-4">
             <div class="col-12">
                 <div class="card result-card">
-                    <div class="card-header bg-success text-white">
-                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado Óptimo</h5>
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-trophy"></i> 🏆 Calendario Optimizado (Branch & Bound REAL)</h5>
+                        <span class="badge bg-light text-dark">
+                            $<span th:text="${resultado.costoTotal}">0</span> Costo Total
+                        </span>
                     </div>
-                    <div class="card-body" id="resultContent">
-                        <!-- Results will be populated here -->
+                    <div class="card-body">
+                        <!-- Summary Stats -->
+                        <div class="row mb-4">
+                            <div class="col-md-3 text-center">
+                                <div class="bg-light p-3 rounded">
+                                    <h3 class="text-success mb-1" th:text="${#lists.size(resultado.partidos)}">0</h3>
+                                    <small class="text-muted">Partidos Programados</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="bg-light p-3 rounded">
+                                    <h3 class="text-warning mb-1">$<span th:text="${resultado.costoTotal}">0</span></h3>
+                                    <small class="text-muted">Costo Optimizado</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="bg-light p-3 rounded">
+                                    <h3 class="text-info mb-1" th:text="${equiposUsados != null ? #lists.size(equiposUsados) : 0}">0</h3>
+                                    <small class="text-muted">Equipos Procesados</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="bg-light p-3 rounded">
+                                    <h3 class="text-primary mb-1" th:text="${tiempoEjecucion}">0</h3>
+                                    <small class="text-muted">Segundos</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Algorithm Info -->
+                        <div class="alert alert-info mb-4">
+                            <h6><i class="fas fa-info-circle"></i> Información del Algoritmo:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>🌊 Fechas procesadas:</strong> <span th:text="${maxDepthUsado}">0</span><br>
+                                    <strong>🎯 Objetivo:</strong> <span th:text="${objectiveUsado}">minimize_distance</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>💰 Presupuesto límite:</strong> $<span th:text="${presupuestoUsado}">0</span><br>
+                                    <strong>🔄 Datos de:</strong> Base de datos Neo4j
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Teams Used -->
+                        <div th:if="${equiposUsados}" class="alert alert-success mb-4">
+                            <h6><i class="fas fa-database"></i> Equipos optimizados (desde Neo4j):</h6>
+                            <div class="row">
+                                <div th:each="equipo, iterStat : ${equiposUsados}" class="col-md-6 col-lg-4 mb-1">
+                                    <span class="badge bg-success me-1" th:text="${iterStat.count}">1</span>
+                                    <strong th:text="${equipo.nombre}">Equipo</strong>
+                                    <small class="text-muted" th:text="'(' + ${equipo.ciudad} + ')'"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Optimized Schedule -->
+                        <h6>📅 Calendario Optimizado:</h6>
+                        <div th:if="${#lists.isEmpty(resultado.partidos)}" class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Sin solución:</strong> No se pudo encontrar un calendario que cumpla con las restricciones de presupuesto.
+                            Prueba aumentar el presupuesto o reducir el número de fechas.
+                        </div>
+                        <div th:if="${not #lists.isEmpty(resultado.partidos)}" class="row">
+                            <div th:each="partido, iterStat : ${resultado.partidos}" class="col-md-6 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <span class="badge bg-success me-2" th:text="'Partido ' + ${iterStat.count}">Partido 1</span>
+                                            <i class="fas fa-calendar"></i>
+                                            <span th:text="${#temporals.format(partido.fecha, 'dd/MM/yyyy')}">Fecha</span>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-5">
+                                                <strong th:text="${partido.equipoLocal.nombre}">Local</strong>
+                                                <br><small class="text-muted" th:text="${partido.equipoLocal.ciudad}">Ciudad</small>
+                                            </div>
+                                            <div class="col-2 text-center">
+                                                <h5 class="text-success mb-0">🆚</h5>
+                                            </div>
+                                            <div class="col-5">
+                                                <strong th:text="${partido.equipoVisitante.nombre}">Visitante</strong>
+                                                <br><small class="text-muted" th:text="${partido.equipoVisitante.ciudad}">Ciudad</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-center">
+                                            <span class="badge bg-warning text-dark">
+                                                💰 Costo: $<span th:text="${partido.costo}">0</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Show when no algorithm executed -->
+        <div class="row mt-4" th:if="${success == null and resultado == null}">
+            <div class="col-12">
+                <div class="alert alert-secondary">
+                    <h6><i class="fas fa-info-circle"></i> Instrucciones:</h6>
+                    <p>1. Selecciona los equipos a optimizar (opcional - si no seleccionas, usará todos)</p>
+                    <p>2. Configura el número de fechas y el presupuesto máximo</p>
+                    <p>3. Haz clic en "Ejecutar Branch & Bound REAL" para optimizar el calendario</p>
+                    <p>4. El algoritmo encontrará la mejor distribución minimizando costos de viaje</p>
                 </div>
             </div>
         </div>
@@ -147,31 +264,18 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('branchBoundForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const equiposSeleccionados = Array.from(document.getElementById('equipos').selectedOptions).map(option => option.text);
-            
-            // Simulate algorithm execution
-            document.getElementById('resultSection').style.display = 'block';
-            document.getElementById('resultContent').innerHTML = `
-                <div class="alert alert-success">
-                    <h6>🎯 Solución Encontrada:</h6>
-                    <p><strong>Equipos procesados:</strong> ${equiposSeleccionados.join(', ')}</p>
-                    <p><strong>Profundidad explorada:</strong> ${formData.get('maxDepth')} niveles</p>
-                    <p><strong>Objetivo:</strong> ${document.getElementById('objective').selectedOptions[0].text}</p>
-                    <p><strong>Nodos explorados:</strong> 1,247</p>
-                    <p><strong>Nodos podados:</strong> 856</p>
-                    <p><strong>Tiempo de ejecución:</strong> 0.34 segundos</p>
-                </div>
-                <div class="alert alert-info">
-                    <p>🌳 <strong>Resultado:</strong> Se encontró la asignación óptima explorando sistemáticamente 
-                    el espacio de soluciones y podando ramas no prometedoras.</p>
-                </div>
-            `;
-            
-            document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
+        // Form enhancement for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando algoritmo...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            }
         });
     </script>
 </body>
