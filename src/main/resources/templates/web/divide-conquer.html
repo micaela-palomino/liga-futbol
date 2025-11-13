@@ -67,42 +67,25 @@
                         <h5><i class="fas fa-cogs"></i> 🔧 Configuración del Algoritmo</h5>
                     </div>
                     <div class="card-body">
-                        <form id="divideConquerForm">
+                        <form th:action="@{/web/divide-conquer/ejecutar}" method="post">
                             <div class="mb-3">
                                 <label for="equipos" class="form-label">🏆 Seleccionar Equipos</label>
-                                <select class="form-select" id="equipos" name="equipos" multiple size="4">
+                                <select class="form-select" id="equipos" name="equiposSeleccionados" multiple size="4">
                                     <option th:each="equipo : ${equipos}" 
                                             th:value="${equipo.id}" 
                                             th:text="${equipo.nombre}">
                                     </option>
                                 </select>
-                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples equipos</div>
+                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples equipos (vacío = todos)</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="divisionStrategy" class="form-label">📊 Estrategia de División</label>
-                                <select class="form-select" id="divisionStrategy" name="divisionStrategy">
-                                    <option value="geographic">🗺️ Por Región Geográfica</option>
-                                    <option value="strength">💪 Por Fortaleza del Equipo</option>
-                                    <option value="random">🎲 División Aleatoria</option>
-                                    <option value="balanced">⚖️ Grupos Balanceados</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="groupSize" class="form-label">👥 Tamaño de Subgrupos</label>
-                                <input type="number" class="form-control" id="groupSize" name="groupSize" 
-                                       value="2" min="2" max="6">
-                                <div class="form-text">Número de equipos por subgrupo</div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="mergeStrategy" class="form-label">🔗 Estrategia de Combinación</label>
-                                <select class="form-select" id="mergeStrategy" name="mergeStrategy">
-                                    <option value="tournament">🏆 Sistema de Torneo</option>
-                                    <option value="roundrobin">🔄 Todos contra Todos</option>
-                                    <option value="playoff">⚡ Sistema de Playoffs</option>
-                                </select>
+                                <input type="hidden" name="divisionStrategy" value="geographic">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-map"></i> <strong>🗺️ Por Región Geográfica</strong>
+                                    <p class="mb-0 mt-1">Los equipos se dividirán por ciudad y se ordenarán usando MergeSort dentro de cada región.</p>
+                                </div>
                             </div>
 
                             <button type="submit" class="btn text-white fw-bold" style="background-color: #6f42c1;">
@@ -149,14 +132,74 @@
         </div>
 
         <!-- Results Section -->
-        <div class="row mt-4" id="resultSection" style="display: none;">
+        <div class="row mt-4" th:if="${success}">
             <div class="col-12">
                 <div class="card result-card">
-                    <div class="card-header bg-success text-white">
-                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado de División y Conquista</h5>
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado de Divide y Conquista</h5>
+                        <span class="badge bg-light text-dark" th:text="${estrategiaUsada ?: 'Procesamiento Completado'}">Estrategia</span>
                     </div>
-                    <div class="card-body" id="resultContent">
-                        <!-- Results will be populated here -->
+                    <div class="card-body">
+                        <!-- Información de ejecución -->
+                        <div class="alert alert-info mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>⏱️ Tiempo de ejecución:</strong> <span th:text="${tiempoEjecucion}">0</span> segundos<br>
+                                    <strong>🏆 Equipos procesados:</strong> <span th:text="${#lists.size(equipos)}">0</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>📊 Estrategia:</strong> <span th:text="${divisionStrategyUsed}">strength</span><br>
+                                    <strong>🔄 Algoritmo:</strong> MergeSort (Divide y Vencerás)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resultados por Región Geográfica -->
+                        <div class="mb-4">
+                            <h6><i class="fas fa-map"></i> 🗺️ División por Región Geográfica:</h6>
+                            <div th:each="region : ${equiposPorRegion}" class="mb-3">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            📍 <span th:text="${region.key}">Región</span>
+                                            <span class="badge bg-light text-dark ms-2" th:text="${#lists.size(region.value)} + ' equipos'">0 equipos</span>
+                                            <span th:if="${lideresPorRegion}" class="float-end">
+                                                👑 Líder: <strong th:text="${lideresPorRegion[region.key]?.nombre}">-</strong>
+                                            </span>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div th:each="equipo, iterStat : ${region.value}" class="col-md-6 mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge bg-success me-2" th:text="${iterStat.count}">1</span>
+                                                    <div>
+                                                        <strong th:text="${equipo.nombre}">Equipo</strong>
+                                                        <br><small class="text-muted">
+                                                            Puntos: <span th:text="${equipo.puntos}">0</span> | 
+                                                            DG: <span th:text="${equipo.diferenciaGoles}">0</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <h6>♟️ <strong>Proceso completado:</strong></h6>
+                            <p th:if="${equiposPorRegion}">
+                                🗺️ Se dividieron los equipos por región geográfica, se aplicó MergeSort a cada región 
+                                independientemente y se combinaron los resultados. 
+                                <strong th:text="${#maps.size(equiposPorRegion)}">0</strong> regiones procesadas.
+                            </p>
+                            <p th:if="${equiposOrdenados and not equiposPorRegion}">
+                                📊 Se aplicó el algoritmo MergeSort para ordenar la tabla de posiciones completa 
+                                considerando puntos, diferencia de goles y goles a favor.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -166,38 +209,18 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('divideConquerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const equiposSeleccionados = Array.from(document.getElementById('equipos').selectedOptions).map(option => option.text);
-            const divisionStrategy = document.getElementById('divisionStrategy').selectedOptions[0].text;
-            const mergeStrategy = document.getElementById('mergeStrategy').selectedOptions[0].text;
-            
-            // Simulate algorithm execution
-            document.getElementById('resultSection').style.display = 'block';
-            document.getElementById('resultContent').innerHTML = `
-                <div class="alert alert-success">
-                    <h6>⚔️ Solución por División y Conquista:</h6>
-                    <p><strong>Equipos procesados:</strong> ${equiposSeleccionados.join(', ')}</p>
-                    <p><strong>Estrategia de división:</strong> ${divisionStrategy}</p>
-                    <p><strong>Tamaño de grupos:</strong> ${formData.get('groupSize')} equipos</p>
-                    <p><strong>Estrategia de combinación:</strong> ${mergeStrategy}</p>
-                    <p><strong>Subproblemas creados:</strong> ${Math.ceil(equiposSeleccionados.length / formData.get('groupSize'))}</p>
-                    <p><strong>Tiempo de ejecución:</strong> 0.18 segundos</p>
-                </div>
-                <div class="alert alert-info">
-                    <p>♟️ <strong>Proceso completado:</strong> Se dividió el problema en subgrupos, 
-                    se resolvió cada uno independientemente y se combinaron las soluciones para 
-                    obtener el resultado final optimizado.</p>
-                </div>
-                <div class="alert alert-warning">
-                    <p>🏆 <strong>Beneficio:</strong> La división del problema redujo la complejidad 
-                    computacional significativamente, permitiendo una solución más eficiente.</p>
-                </div>
-            `;
-            
-            document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
+        // Form enhancement for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 🔄 Procesando...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            }
         });
     </script>
 </body>

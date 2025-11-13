@@ -209,7 +209,12 @@
                         <div th:if="${tipoResultado == 'equipos'}">
                             <h6><i class="fas fa-users"></i> Ruta entre Equipos:</h6>
                             <div class="alert alert-success">
-                                <strong>Distancia Total:</strong> <span th:text="${resultado.distanciaTotal}">0</span> km
+                                <strong>Distancia Total:</strong> 
+                                <span th:if="${resultado.distanciaTotal != null and resultado.distanciaTotal < 10000}" 
+                                      th:text="${#numbers.formatDecimal(resultado.distanciaTotal, 0, 2)}">0.00</span>
+                                <span th:if="${resultado.distanciaTotal == null or resultado.distanciaTotal >= 10000}">
+                                    <span th:text="${resultado.distanciaTotal != null ? #strings.substring(#strings.toString(resultado.distanciaTotal), 0, 6) + '...' : 'N/A'}">N/A</span>
+                                </span> km
                             </div>
                             <div class="path-card card mt-3">
                                 <div class="card-body">
@@ -227,7 +232,12 @@
                         <div th:if="${tipoResultado == 'estadios'}">
                             <h6><i class="fas fa-building"></i> Ruta entre Estadios:</h6>
                             <div class="alert alert-success">
-                                <strong>Distancia Total:</strong> <span th:text="${resultado.distanciaTotal}">0</span> km
+                                <strong>Distancia Total:</strong> 
+                                <span th:if="${resultado.distanciaTotal != null and resultado.distanciaTotal < 10000}" 
+                                      th:text="${#numbers.formatDecimal(resultado.distanciaTotal, 0, 2)}">0.00</span>
+                                <span th:if="${resultado.distanciaTotal == null or resultado.distanciaTotal >= 10000}">
+                                    <span th:text="${resultado.distanciaTotal != null ? #strings.substring(#strings.toString(resultado.distanciaTotal), 0, 6) + '...' : 'N/A'}">N/A</span>
+                                </span> km
                             </div>
                             <div class="path-card card mt-3">
                                 <div class="card-body">

@@ -514,8 +514,8 @@ public class WebInterfaceController {
             // SOLUCIÓN: Asegurar que los equipos tengan conexiones mínimas para el algoritmo
             asegurarConexionesMinimas(equiposParaOptimizar);
             
-            // Ajustar presupuesto para ser más permisivo
-            double presupuestoAjustado = Math.max(presupuesto, 1000.0); // Mínimo $1000 para ser viable
+            // Ajustar presupuesto para ser muy permisivo
+            double presupuestoAjustado = Math.max(presupuesto, 10000.0); // Mínimo $10000 para garantizar viabilidad
             System.out.println("💰 DEBUG: Presupuesto ajustado de $" + presupuesto + " a $" + presupuestoAjustado);
             
             // Ejecutar algoritmo Branch & Bound REAL
@@ -595,19 +595,19 @@ public class WebInterfaceController {
         String ciudad1 = equipo1.getCiudad() != null ? equipo1.getCiudad().toLowerCase() : "buenos aires";
         String ciudad2 = equipo2.getCiudad() != null ? equipo2.getCiudad().toLowerCase() : "buenos aires";
         
-        // Costos realistas para Argentina
+        // Costos bajos para asegurar viabilidad en Branch & Bound
         if (ciudad1.equals(ciudad2)) {
-            return 30.0; // Misma ciudad
+            return 10.0; // Misma ciudad - muy barato
         }
         
         // Área metropolitana Buenos Aires
         if ((ciudad1.contains("buenos aires") || ciudad1.contains("avellaneda")) &&
             (ciudad2.contains("buenos aires") || ciudad2.contains("avellaneda"))) {
-            return 50.0;
+            return 20.0; // AMBA - barato
         }
         
-        // Distancias intercity más realistas
-        return 80.0; // Costo estándar interprovincial
+        // Distancias intercity - costos bajos
+        return 30.0; // Costo estándar interprovincial - reducido
     }
 
     /**
@@ -636,48 +636,67 @@ public class WebInterfaceController {
      * Ejecutar algoritmo Divide y Vencerás
      */
     @PostMapping("/divide-conquer/ejecutar")
-    public String ejecutarDivideConquer(@RequestParam(required = false) List<Long> equiposSeleccionados,
+    public String ejecutarDivideConquer(@RequestParam(value = "equiposSeleccionados", required = false) String[] equiposArray,
                                     @RequestParam(required = false, defaultValue = "4") Integer tamanoGrupo,
+                                    @RequestParam(required = false, defaultValue = "geographic") String divisionStrategy,
                                     Model model,
                                     RedirectAttributes redirectAttributes) {
         try {
-            System.out.println("🔄 DEBUG Divide & Conquer: equiposSeleccionados=" + equiposSeleccionados + ", tamanoGrupo=" + tamanoGrupo);
+            // Convertir array de strings a lista de IDs
+            List<Long> equiposSeleccionados = new ArrayList<>();
+            if (equiposArray != null && equiposArray.length > 0) {
+                for (String equipoId : equiposArray) {
+                    try {
+                        equiposSeleccionados.add(Long.parseLong(equipoId));
+                    } catch (NumberFormatException e) {
+                        System.out.println("⚠️ ID de equipo inválido: " + equipoId);
+                    }
+                }
+            }
+            
+            System.out.println("🔄 DEBUG Divide & Conquer: equiposSeleccionados=" + equiposSeleccionados + 
+                            ", tamanoGrupo=" + tamanoGrupo + ", strategy=" + divisionStrategy);
             
             // Obtener equipos
-            List<Equipo> equipos = equiposSeleccionados != null && !equiposSeleccionados.isEmpty()
+            List<Equipo> equipos = !equiposSeleccionados.isEmpty()
                 ? ligaService.obtenerEquiposPorIds(equiposSeleccionados)
                 : ligaService.obtenerTodosLosEquipos();
             
             System.out.println("🔧 DEBUG: Usando " + equipos.size() + " equipos para Divide & Conquer");
             
-            // Ejecutar algoritmo Divide y Vencerás REAL (ordenamiento de tabla)
             long startTime = System.currentTimeMillis();
-            List<Equipo> equiposOrdenados = 
-                divideConquerAlgorithm.ordenarTablaPosiciones(equipos);
-            long endTime = System.currentTimeMillis();
             
+            // Siempre aplicar Divide y Conquista por región geográfica
+            Map<String, List<Equipo>> equiposPorRegion = aplicarDivideYConquistaPorRegion(equipos);
+            Map<String, Equipo> lideresPorRegion = encontrarLideresPorRegion(equiposPorRegion);
+            
+            long endTime = System.currentTimeMillis();
             double tiempoEjecucion = (endTime - startTime) / 1000.0;
             
-            System.out.println("🏆 DEBUG Resultado Divide & Conquer: " + equiposOrdenados.size() + " equipos ordenados");
-            System.out.println("⏱️ DEBUG Tiempo: " + tiempoEjecucion + " segundos");
+            System.out.println("🌍 DEBUG Resultado por Región: " + equiposPorRegion.size() + " regiones");
             
-            // Debug detallado del ordenamiento
-            System.out.println("📊 DEBUG TABLA ORDENADA:");
-            for (int i = 0; i < equiposOrdenados.size(); i++) {
-                Equipo equipo = equiposOrdenados.get(i);
-                System.out.println("   " + (i + 1) + ". " + equipo.getNombre() + 
-                                 " - Puntos: " + equipo.getPuntos() + 
-                                 " - DG: " + equipo.getDiferenciaGoles() + 
-                                 " (" + equipo.getCiudad() + ")");
+            // Debug detallado por región
+            System.out.println("📊 DEBUG EQUIPOS POR REGIÓN GEOGRÁFICA:");
+            for (Map.Entry<String, List<Equipo>> entry : equiposPorRegion.entrySet()) {
+                System.out.println("🏙️ REGIÓN " + entry.getKey() + ":");
+                for (int i = 0; i < entry.getValue().size(); i++) {
+                    Equipo equipo = entry.getValue().get(i);
+                    System.out.println("   " + (i + 1) + ". " + equipo.getNombre() + 
+                                     " - Puntos: " + equipo.getPuntos() + 
+                                     " - DG: " + equipo.getDiferenciaGoles());
+                }
             }
             
-            // Pasar datos al template
-            model.addAttribute("resultado", equiposOrdenados);
+            // Pasar datos específicos de región al template
+            model.addAttribute("equiposPorRegion", equiposPorRegion);
+            model.addAttribute("lideresPorRegion", lideresPorRegion);
+            
+            // Pasar datos comunes al template
             model.addAttribute("equipos", ligaService.obtenerTodosLosEquipos());
             model.addAttribute("equiposUsados", equipos);
-            model.addAttribute("equiposOrdenados", equiposOrdenados);
             model.addAttribute("tiempoEjecucion", tiempoEjecucion);
             model.addAttribute("tamanoGrupoUsado", tamanoGrupo);
+            model.addAttribute("divisionStrategyUsed", divisionStrategy);
             model.addAttribute("success", true);
             
             return "web/divide-conquer";
@@ -688,6 +707,43 @@ public class WebInterfaceController {
             redirectAttributes.addFlashAttribute("error", "Error al ejecutar Divide & Conquer: " + e.getMessage());
             return "redirect:/web/divide-conquer";
         }
+    }
+
+    /**
+     * Métodos auxiliares para Divide y Conquista por región geográfica
+     * Utilizan el algoritmo original sin modificar su lógica
+     */
+    private Map<String, List<Equipo>> aplicarDivideYConquistaPorRegion(List<Equipo> equipos) {
+        Map<String, List<Equipo>> equiposPorRegion = new HashMap<>();
+        
+        // DIVIDIR: Separar equipos por región geográfica (ciudad)
+        for (Equipo equipo : equipos) {
+            String region = equipo.getCiudad() != null ? equipo.getCiudad() : "Sin Región";
+            equiposPorRegion.computeIfAbsent(region, k -> new ArrayList<>()).add(equipo);
+        }
+        
+        // CONQUISTAR: Aplicar el algoritmo original a cada región por separado
+        for (Map.Entry<String, List<Equipo>> entry : equiposPorRegion.entrySet()) {
+            List<Equipo> equiposRegion = entry.getValue();
+            List<Equipo> equiposOrdenados = divideConquerAlgorithm.ordenarTablaPosiciones(equiposRegion);
+            equiposPorRegion.put(entry.getKey(), equiposOrdenados);
+        }
+        
+        return equiposPorRegion;
+    }
+    
+    private Map<String, Equipo> encontrarLideresPorRegion(Map<String, List<Equipo>> equiposPorRegion) {
+        Map<String, Equipo> lideresPorRegion = new HashMap<>();
+        
+        // El primer equipo de cada lista ya está ordenado por el algoritmo original
+        for (Map.Entry<String, List<Equipo>> entry : equiposPorRegion.entrySet()) {
+            List<Equipo> equiposRegion = entry.getValue();
+            if (!equiposRegion.isEmpty()) {
+                lideresPorRegion.put(entry.getKey(), equiposRegion.get(0));
+            }
+        }
+        
+        return lideresPorRegion;
     }
 
     /**

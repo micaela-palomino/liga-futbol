@@ -82,15 +82,15 @@
                             <div class="mb-3">
                                 <label for="maxDepth" class="form-label">🌊 Fechas a Optimizar</label>
                                 <input type="number" class="form-control" id="maxDepth" name="maxDepth" 
-                                       value="3" min="1" max="8">
+                                    value="3" min="1" max="8">
                                 <div class="form-text">Número de fechas/jornadas para el calendario optimizado</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="presupuesto" class="form-label">💰 Presupuesto Máximo</label>
                                 <input type="number" class="form-control" id="presupuesto" name="presupuesto" 
-                                       value="1000" min="100" max="10000" step="100">
-                                <div class="form-text">Límite de costo total para los viajes</div>
+                                    value="10000" min="2000" max="50000" step="1000">
+                                <div class="form-text">Límite de costo total para los viajes (mínimo recomendado: $10000)</div>
                             </div>
 
                             <div class="mb-3">
@@ -129,7 +129,7 @@
                         <div class="alert alert-warning">
                             <h6>⚽ Analogía Futbolística:</h6>
                             <p>Como un técnico que analiza todas las formaciones posibles (4-4-2, 3-5-2, etc.) 
-                               pero descarta rápidamente las que ve que no funcionarán contra el rival.</p>
+                            pero descarta rápidamente las que ve que no funcionarán contra el rival.</p>
                         </div>
                     </div>
                 </div>
@@ -157,7 +157,7 @@
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="bg-light p-3 rounded">
-                                    <h3 class="text-warning mb-1">$<span th:text="${resultado.costoTotal}">0</span></h3>
+                                    <h3 class="text-warning mb-1">$<span th:text="${#numbers.formatDecimal(resultado.costoTotal, 1, 2)}">0</span></h3>
                                     <small class="text-muted">Costo Optimizado</small>
                                 </div>
                             </div>

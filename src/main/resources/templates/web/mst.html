@@ -212,15 +212,117 @@
             </div>
         </div>
 
-        <!-- Results Section -->
-        <div class="row mt-4" id="resultSection" style="display: none;">
+        <!-- Real Results Section -->
+        <div class="row mt-4" th:if="${resultado != null}">
+            <div class="col-md-8">
+                <div class="card result-card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado del MST</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Summary Information -->
+                        <div class="alert alert-info mb-4">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <h4 class="text-success mb-1" th:text="${#lists.size(resultado.aristas)}">0</h4>
+                                    <small>🔗 Aristas en MST</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-primary mb-1" th:text="${#numbers.formatDecimal(resultado.costoTotal, 1, 2)}">0.00</h4>
+                                    <small>💰 Costo Total</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-warning mb-1" th:text="${tiempoEjecucion}">0.0</h4>
+                                    <small>⏱️ Tiempo (seg)</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-info mb-1" th:text="${tipoAlgoritmo}">ALGORITMO</h4>
+                                    <small>🧮 Método Usado</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Teams/Stadiums Used -->
+                        <div th:if="${estadiosUsados}" class="alert alert-success mb-4">
+                            <h6><i class="fas fa-database"></i> Estadios procesados (Base de datos Neo4j):</h6>
+                            <div class="row">
+                                <div th:each="estadio, iterStat : ${estadiosUsados}" class="col-md-6 col-lg-4 mb-1">
+                                    <span class="badge bg-success me-1" th:text="${iterStat.count}">1</span>
+                                    <strong th:text="${estadio.nombre}">Estadio</strong>
+                                    <small class="text-muted" th:text="'(' + ${estadio.ciudad} + ')'"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Algorithm Information -->
+                        <div class="mt-3">
+                            <h6><i class="fas fa-info-circle"></i> Información del Algoritmo:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>🌳 Algoritmo:</strong> <span th:text="${tipoAlgoritmo}">MST</span><br>
+                                    <strong>📊 Complejidad:</strong> O(E log V)
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>🔄 Datos de:</strong> Base de datos Neo4j<br>
+                                    <strong>⚡ Optimización:</strong> Conexiones mínimas
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-list"></i> 🔗 Aristas del MST</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(resultado.aristas)}" class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Sin aristas:</strong> No se pudieron generar conexiones MST.
+                        </div>
+                        <div th:if="${not #lists.isEmpty(resultado.aristas)}">
+                            <div th:each="arista, iterStat : ${resultado.aristas}" class="mb-2">
+                                <div class="card border-success">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge bg-primary me-1" th:text="${iterStat.count}">1</span>
+                                                <strong th:text="${arista.origen.nombre}">Origen</strong>
+                                                <i class="fas fa-arrow-right text-muted mx-1"></i>
+                                                <strong th:text="${arista.destino.nombre}">Destino</strong>
+                                            </div>
+                                        </div>
+                                        <div class="mt-1">
+                                            <small class="text-muted">
+                                                <span th:text="${arista.origen.ciudad}">Ciudad1</span>
+                                                ↔
+                                                <span th:text="${arista.destino.ciudad}">Ciudad2</span>
+                                            </small>
+                                            <br>
+                                            <span class="badge bg-warning text-dark">
+                                                Peso: <span th:text="${#numbers.formatDecimal(arista.costo, 1, 2)}">0.00</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulated Results Section (fallback) -->
+        <div class="row mt-4" id="resultSection" style="display: none;" th:if="${resultado == null}">
             <div class="col-md-8">
                 <div class="card result-card">
                     <div class="card-header bg-success text-white">
                         <h5><i class="fas fa-trophy"></i> 🏆 Resultado del MST</h5>
                     </div>
                     <div class="card-body" id="resultContent">
-                        <!-- Results will be populated here -->
+                        <!-- Results will be populated here by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -232,22 +334,35 @@
                     </div>
                     <div class="card-body">
                         <div class="edge-list" id="edgesList">
-                            <!-- Edges will be populated here -->
+                            <!-- Edges will be populated here by JavaScript -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Steps Section -->
-        <div class="row mt-4" id="stepsSection" style="display: none;">
+        <!-- Show when no algorithm executed -->
+        <div class="row mt-4" th:if="${success == null and resultado == null}">
+            <div class="col-12">
+                <div class="alert alert-secondary">
+                    <h6><i class="fas fa-info-circle"></i> Instrucciones:</h6>
+                    <p>1. Selecciona los estadios para conectar (opcional - si no seleccionas, usará todos)</p>
+                    <p>2. Para Prim, selecciona el estadio de inicio</p>
+                    <p>3. Haz clic en "Ejecutar Kruskal" o "Ejecutar Prim" para generar el MST</p>
+                    <p>4. El algoritmo encontrará el árbol de expansión mínima que conecte todos los estadios con menor costo</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulated Steps Section (fallback) -->
+        <div class="row mt-4" id="stepsSection" style="display: none;" th:if="${resultado == null}">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header bg-warning text-dark">
                         <h5><i class="fas fa-list-ol"></i> 👣 Pasos del Algoritmo</h5>
                     </div>
                     <div class="card-body" id="stepsContent">
-                        <!-- Steps will be populated here -->
+                        <!-- Steps will be populated here by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -304,12 +419,12 @@
                 let edgesContent = '<div class="list-group">';
                 for (let i = 0; i < numAristas; i++) {
                     const peso = (Math.random() * 100 + 10).toFixed(1);
-                    const desde = estadiosSeleccionados[i % estadiosSeleccionados.length].split(' ')[0];
-                    const hasta = estadiosSeleccionados[(i + 1) % estadiosSeleccionados.length].split(' ')[0];
+                    const nombreEstadio1 = estadiosSeleccionados[i % estadiosSeleccionados.length];
+                    const nombreEstadio2 = estadiosSeleccionados[(i + 1) % estadiosSeleccionados.length];
                     edgesContent += `
                         <div class="list-group-item">
                             <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">${desde} ↔ ${hasta}</h6>
+                                <h6 class="mb-1">${nombreEstadio1} ↔ ${nombreEstadio2}</h6>
                                 <small>${peso}</small>
                             </div>
                         </div>
