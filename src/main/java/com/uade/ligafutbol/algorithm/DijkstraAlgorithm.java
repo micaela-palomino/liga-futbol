@@ -187,6 +187,144 @@ public class DijkstraAlgorithm {
         }
     }
     
+    /**
+     * Encuentra múltiples caminos entre dos equipos ordenados por distancia
+     */
+    public ResultadoMultiplesDijkstra<Equipo> multipleCaminosEquipos(Equipo origen, Equipo destino, int maxCaminos) {
+        List<CaminoConCosto<Equipo>> todosCaminos = encontrarTodosCaminosEquipos(origen, destino, new ArrayList<>(), 0.0, maxCaminos);
+        
+        // Ordenar por costo (el primero será el óptimo)
+        todosCaminos.sort((a, b) -> Double.compare(a.getCosto(), b.getCosto()));
+        
+        // Tomar solo los mejores caminos
+        if (todosCaminos.size() > maxCaminos) {
+            todosCaminos = todosCaminos.subList(0, maxCaminos);
+        }
+        
+        return new ResultadoMultiplesDijkstra<>(todosCaminos);
+    }
+    
+    /**
+     * Encuentra múltiples caminos entre dos estadios ordenados por distancia
+     */
+    public ResultadoMultiplesDijkstra<Estadio> multipleCaminosEstadios(Estadio origen, Estadio destino, int maxCaminos) {
+        List<CaminoConCosto<Estadio>> todosCaminos = encontrarTodosCaminosEstadios(origen, destino, new ArrayList<>(), 0.0, maxCaminos);
+        
+        // Ordenar por costo (el primero será el óptimo)
+        todosCaminos.sort((a, b) -> Double.compare(a.getCosto(), b.getCosto()));
+        
+        // Tomar solo los mejores caminos
+        if (todosCaminos.size() > maxCaminos) {
+            todosCaminos = todosCaminos.subList(0, maxCaminos);
+        }
+        
+        return new ResultadoMultiplesDijkstra<>(todosCaminos);
+    }
+    
+    private List<CaminoConCosto<Equipo>> encontrarTodosCaminosEquipos(Equipo origen, Equipo destino, 
+                                                                      List<Equipo> caminoActual, double costoActual, int maxCaminos) {
+        List<CaminoConCosto<Equipo>> caminos = new ArrayList<>();
+        
+        // Evitar ciclos
+        if (caminoActual.contains(origen) || caminos.size() >= maxCaminos * 2) {
+            return caminos;
+        }
+        
+        // Agregar el nodo actual al camino
+        List<Equipo> nuevoCamino = new ArrayList<>(caminoActual);
+        nuevoCamino.add(origen);
+        
+        // Si llegamos al destino, agregar el camino
+        if (origen.equals(destino)) {
+            caminos.add(new CaminoConCosto<>(nuevoCamino, costoActual));
+            return caminos;
+        }
+        
+        // Explorar conexiones
+        for (ConexionEquipo conexion : origen.getConexiones()) {
+            Equipo vecino = conexion.getEquipoDestino();
+            double nuevoCosto = costoActual + conexion.getDistancia();
+            
+            // Recursión para encontrar caminos desde el vecino
+            List<CaminoConCosto<Equipo>> caminosDesdeVecino = 
+                encontrarTodosCaminosEquipos(vecino, destino, nuevoCamino, nuevoCosto, maxCaminos);
+            caminos.addAll(caminosDesdeVecino);
+        }
+        
+        return caminos;
+    }
+    
+    private List<CaminoConCosto<Estadio>> encontrarTodosCaminosEstadios(Estadio origen, Estadio destino, 
+                                                                        List<Estadio> caminoActual, double costoActual, int maxCaminos) {
+        List<CaminoConCosto<Estadio>> caminos = new ArrayList<>();
+        
+        // Evitar ciclos
+        if (caminoActual.contains(origen) || caminos.size() >= maxCaminos * 2) {
+            return caminos;
+        }
+        
+        // Agregar el nodo actual al camino
+        List<Estadio> nuevoCamino = new ArrayList<>(caminoActual);
+        nuevoCamino.add(origen);
+        
+        // Si llegamos al destino, agregar el camino
+        if (origen.equals(destino)) {
+            caminos.add(new CaminoConCosto<>(nuevoCamino, costoActual));
+            return caminos;
+        }
+        
+        // Explorar conexiones
+        for (ConexionEstadio conexion : origen.getConexiones()) {
+            Estadio vecino = conexion.getEstadioDestino();
+            double nuevoCosto = costoActual + conexion.getDistancia();
+            
+            // Recursión para encontrar caminos desde el vecino
+            List<CaminoConCosto<Estadio>> caminosDesdeVecino = 
+                encontrarTodosCaminosEstadios(vecino, destino, nuevoCamino, nuevoCosto, maxCaminos);
+            caminos.addAll(caminosDesdeVecino);
+        }
+        
+        return caminos;
+    }
+
+    public static class CaminoConCosto<T> {
+        private List<T> camino;
+        private double costo;
+        
+        public CaminoConCosto(List<T> camino, double costo) {
+            this.camino = camino;
+            this.costo = costo;
+        }
+        
+        public List<T> getCamino() {
+            return camino;
+        }
+        
+        public double getCosto() {
+            return costo;
+        }
+    }
+    
+    public static class ResultadoMultiplesDijkstra<T> {
+        private List<CaminoConCosto<T>> caminos;
+        
+        public ResultadoMultiplesDijkstra(List<CaminoConCosto<T>> caminos) {
+            this.caminos = caminos;
+        }
+        
+        public List<CaminoConCosto<T>> getCaminos() {
+            return caminos;
+        }
+        
+        public CaminoConCosto<T> getMejorCamino() {
+            return caminos.isEmpty() ? null : caminos.get(0);
+        }
+        
+        public double getMejorCosto() {
+            return getMejorCamino() != null ? getMejorCamino().getCosto() : Double.MAX_VALUE;
+        }
+    }
+
     public static class ResultadoDijkstra<T> {
         private List<T> camino;
         private double distanciaTotal;

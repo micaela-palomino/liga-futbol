@@ -4,12 +4,15 @@ import com.uade.ligafutbol.algorithm.*;
 import com.uade.ligafutbol.model.ConexionEquipo;
 import com.uade.ligafutbol.model.Equipo;
 import com.uade.ligafutbol.model.Estadio;
+import com.uade.ligafutbol.model.Partido;
 import com.uade.ligafutbol.service.LigaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -312,16 +315,18 @@ public class WebInterfaceController {
     }
 
     /**
-     * Ejecutar algoritmo Dijkstra para equipos
+     * Ejecutar algoritmo Dijkstra para equipos - TODOS LOS CAMINOS
      */
     @PostMapping("/dijkstra/equipos")
     public String ejecutarDijkstraEquipos(@RequestParam String equipoOrigenId,
                                         @RequestParam String equipoDestinoId,
+                                        @RequestParam(value = "mostrarTodos", defaultValue = "false") boolean mostrarTodos,
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
             System.out.println("🔍 DEBUG: Iniciando Dijkstra para equipos");
             System.out.println("🔍 DEBUG: Origen ID: " + equipoOrigenId + ", Destino ID: " + equipoDestinoId);
+            System.out.println("🔍 DEBUG: Mostrar todos los caminos: " + mostrarTodos);
             
             Equipo origen = ligaService.obtenerEquipoPorId(equipoOrigenId);
             Equipo destino = ligaService.obtenerEquipoPorId(equipoDestinoId);
@@ -329,17 +334,31 @@ public class WebInterfaceController {
             System.out.println("🔍 DEBUG: Origen encontrado: " + (origen != null ? origen.getNombre() : "NULL"));
             System.out.println("🔍 DEBUG: Destino encontrado: " + (destino != null ? destino.getNombre() : "NULL"));
             
-            DijkstraAlgorithm.ResultadoDijkstra<Equipo> resultado = 
-                dijkstraAlgorithm.caminoMasCortoEquipos(origen, destino);
-            
-            System.out.println("🔍 DEBUG: Resultado obtenido: " + (resultado != null ? "OK" : "NULL"));
-            if (resultado != null) {
-                System.out.println("🔍 DEBUG: Distancia total: " + resultado.getDistanciaTotal());
-                System.out.println("🔍 DEBUG: Cantidad de nodos en el camino: " + 
-                    (resultado.getCamino() != null ? resultado.getCamino().size() : "NULL"));
+            if (mostrarTodos) {
+                // Buscar múltiples caminos
+                DijkstraAlgorithm.ResultadoMultiplesDijkstra<Equipo> resultadoMultiple = 
+                    dijkstraAlgorithm.multipleCaminosEquipos(origen, destino, 5);
+                
+                System.out.println("🔍 DEBUG: " + resultadoMultiple.getCaminos().size() + " caminos encontrados");
+                
+                model.addAttribute("resultadoMultiple", resultadoMultiple);
+                model.addAttribute("mostrarTodos", true);
+            } else {
+                // Buscar solo el mejor camino
+                DijkstraAlgorithm.ResultadoDijkstra<Equipo> resultado = 
+                    dijkstraAlgorithm.caminoMasCortoEquipos(origen, destino);
+                
+                System.out.println("🔍 DEBUG: Resultado obtenido: " + (resultado != null ? "OK" : "NULL"));
+                if (resultado != null) {
+                    System.out.println("🔍 DEBUG: Distancia total: " + resultado.getDistanciaTotal());
+                    System.out.println("🔍 DEBUG: Cantidad de nodos en el camino: " + 
+                        (resultado.getCamino() != null ? resultado.getCamino().size() : "NULL"));
+                }
+                
+                model.addAttribute("resultado", resultado);
+                model.addAttribute("mostrarTodos", false);
             }
             
-            model.addAttribute("resultado", resultado);
             model.addAttribute("equipos", ligaService.obtenerTodosLosEquipos());
             model.addAttribute("estadios", ligaService.obtenerTodosLosEstadios());
             model.addAttribute("tipoResultado", "equipos");
@@ -357,21 +376,38 @@ public class WebInterfaceController {
     }
 
     /**
-     * Ejecutar algoritmo Dijkstra para estadios
+     * Ejecutar algoritmo Dijkstra para estadios - TODOS LOS CAMINOS
      */
     @PostMapping("/dijkstra/estadios")
     public String ejecutarDijkstraEstadios(@RequestParam String estadioOrigenId,
                                         @RequestParam String estadioDestinoId,
+                                        @RequestParam(value = "mostrarTodos", defaultValue = "false") boolean mostrarTodos,
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
+            System.out.println("🏟️ DEBUG: Dijkstra estadios - Mostrar todos: " + mostrarTodos);
+            
             Estadio origen = ligaService.obtenerEstadioPorId(estadioOrigenId);
             Estadio destino = ligaService.obtenerEstadioPorId(estadioDestinoId);
             
-            DijkstraAlgorithm.ResultadoDijkstra<Estadio> resultado = 
-                dijkstraAlgorithm.caminoMasCortoEstadios(origen, destino);
+            if (mostrarTodos) {
+                // Buscar múltiples caminos
+                DijkstraAlgorithm.ResultadoMultiplesDijkstra<Estadio> resultadoMultiple = 
+                    dijkstraAlgorithm.multipleCaminosEstadios(origen, destino, 5);
+                
+                System.out.println("🏟️ DEBUG: " + resultadoMultiple.getCaminos().size() + " caminos encontrados");
+                
+                model.addAttribute("resultadoMultiple", resultadoMultiple);
+                model.addAttribute("mostrarTodos", true);
+            } else {
+                // Buscar solo el mejor camino
+                DijkstraAlgorithm.ResultadoDijkstra<Estadio> resultado = 
+                    dijkstraAlgorithm.caminoMasCortoEstadios(origen, destino);
+                
+                model.addAttribute("resultado", resultado);
+                model.addAttribute("mostrarTodos", false);
+            }
             
-            model.addAttribute("resultado", resultado);
             model.addAttribute("equipos", ligaService.obtenerTodosLosEquipos());
             model.addAttribute("estadios", ligaService.obtenerTodosLosEstadios());
             model.addAttribute("tipoResultado", "estadios");
@@ -854,6 +890,157 @@ public class WebInterfaceController {
             return "web/error";
         }
     }
+    
+    /**
+     * Endpoint para obtener datos del grafo desde Neo4j (mejorado)
+     */
+    @GetMapping("/api/grafo/datos")
+    @ResponseBody
+    public Map<String, Object> obtenerDatosGrafo() {
+        Map<String, Object> datos = new HashMap<>();
+        
+        try {
+            List<Equipo> equipos = ligaService.obtenerTodosLosEquipos();
+            List<Estadio> estadios = ligaService.obtenerTodosLosEstadios();
+            List<Partido> partidos = ligaService.obtenerTodosLosPartidos();
+            
+            System.out.println("Datos Neo4j - Equipos: " + equipos.size() + ", Estadios: " + estadios.size() + ", Partidos: " + partidos.size());
+            
+            // Nodos del grafo
+            List<Map<String, Object>> nodos = new ArrayList<>();
+            
+            // Agregar equipos como nodos
+            for (Equipo equipo : equipos) {
+                if (equipo != null && equipo.getNombre() != null) {
+                    Map<String, Object> nodo = new HashMap<>();
+                    nodo.put("id", "equipo_" + equipo.getId());
+                    nodo.put("name", equipo.getNombre());
+                    nodo.put("type", "equipo");
+                    nodo.put("group", 1);
+                    nodos.add(nodo);
+                }
+            }
+            
+            // Agregar estadios como nodos
+            for (Estadio estadio : estadios) {
+                if (estadio != null && estadio.getNombre() != null) {
+                    Map<String, Object> nodo = new HashMap<>();
+                    nodo.put("id", "estadio_" + estadio.getId());
+                    nodo.put("name", estadio.getNombre());
+                    nodo.put("type", "estadio");
+                    nodo.put("group", 2);
+                    nodos.add(nodo);
+                }
+            }
+            
+            // Enlaces del grafo (partidos) - con validaciones
+            List<Map<String, Object>> enlaces = new ArrayList<>();
+            
+            for (Partido partido : partidos) {
+                if (partido != null && partido.getEquipoLocal() != null && partido.getEquipoVisitante() != null) {
+                    // Enlace entre equipos (partido)
+                    Map<String, Object> enlace = new HashMap<>();
+                    enlace.put("source", "equipo_" + partido.getEquipoLocal().getId());
+                    enlace.put("target", "equipo_" + partido.getEquipoVisitante().getId());
+                    enlace.put("value", 1);
+                    enlaces.add(enlace);
+                    
+                    // Enlace equipo-estadio si existe
+                    if (partido.getEstadio() != null) {
+                        Map<String, Object> enlaceEstadio = new HashMap<>();
+                        enlaceEstadio.put("source", "equipo_" + partido.getEquipoLocal().getId());
+                        enlaceEstadio.put("target", "estadio_" + partido.getEstadio().getId());
+                        enlaceEstadio.put("value", 0.5);
+                        enlaceEstadio.put("type", "estadio");
+                        enlaces.add(enlaceEstadio);
+                    }
+                }
+            }
+            
+            datos.put("nodes", nodos);
+            datos.put("links", enlaces);
+            datos.put("totalEquipos", equipos.size());
+            datos.put("totalEstadios", estadios.size());
+            datos.put("totalPartidos", partidos.size());
+            datos.put("status", "success_neo4j");
+            datos.put("message", "Datos reales desde Neo4j");
+            
+            System.out.println("Grafo generado - Nodos: " + nodos.size() + ", Enlaces: " + enlaces.size());
+            
+        } catch (Exception e) {
+            System.out.println("Error Neo4j: " + e.getMessage());
+            // Si hay error, usar datos de prueba
+            datos = crearDatosPrueba();
+        }
+        
+        return datos;
+    }
+    
+    /**
+     * Datos de prueba para mostrar el grafo cuando Neo4j no funciona
+     */
+    private Map<String, Object> crearDatosPrueba() {
+        Map<String, Object> datos = new HashMap<>();
+        
+        // Nodos de prueba
+        List<Map<String, Object>> nodos = new ArrayList<>();
+        
+        // Equipos de prueba
+        String[] nombresEquipos = {"Boca Juniors", "River Plate", "Independiente", "Racing", "San Lorenzo"};
+        for (int i = 0; i < nombresEquipos.length; i++) {
+            Map<String, Object> nodo = new HashMap<>();
+            nodo.put("id", "equipo_" + i);
+            nodo.put("name", nombresEquipos[i]);
+            nodo.put("type", "equipo");
+            nodo.put("group", 1);
+            nodos.add(nodo);
+        }
+        
+        // Estadios de prueba
+        String[] nombresEstadios = {"La Bombonera", "El Monumental", "Libertadores de América"};
+        for (int i = 0; i < nombresEstadios.length; i++) {
+            Map<String, Object> nodo = new HashMap<>();
+            nodo.put("id", "estadio_" + i);
+            nodo.put("name", nombresEstadios[i]);
+            nodo.put("type", "estadio");
+            nodo.put("group", 2);
+            nodos.add(nodo);
+        }
+        
+        // Enlaces de prueba
+        List<Map<String, Object>> enlaces = new ArrayList<>();
+        
+        // Partidos entre equipos
+        enlaces.add(crearEnlace("equipo_0", "equipo_1", 1, "partido"));
+        enlaces.add(crearEnlace("equipo_1", "equipo_2", 1, "partido"));
+        enlaces.add(crearEnlace("equipo_2", "equipo_3", 1, "partido"));
+        enlaces.add(crearEnlace("equipo_3", "equipo_4", 1, "partido"));
+        enlaces.add(crearEnlace("equipo_0", "equipo_4", 1, "partido"));
+        
+        // Enlaces equipos-estadios
+        enlaces.add(crearEnlace("equipo_0", "estadio_0", 0.5, "estadio"));
+        enlaces.add(crearEnlace("equipo_1", "estadio_1", 0.5, "estadio"));
+        enlaces.add(crearEnlace("equipo_2", "estadio_2", 0.5, "estadio"));
+        
+        datos.put("nodes", nodos);
+        datos.put("links", enlaces);
+        datos.put("totalEquipos", 5);
+        datos.put("totalEstadios", 3);
+        datos.put("totalPartidos", 5);
+        datos.put("status", "fallback");
+        datos.put("message", "Usando datos de prueba - Neo4j no disponible");
+        
+        return datos;
+    }
+    
+    private Map<String, Object> crearEnlace(String source, String target, double value, String type) {
+        Map<String, Object> enlace = new HashMap<>();
+        enlace.put("source", source);
+        enlace.put("target", target);
+        enlace.put("value", value);
+        if (type != null) enlace.put("type", type);
+        return enlace;
+    }
 
     /**
      * Ejecutar algoritmos de Grafos - BFS
@@ -1045,27 +1232,34 @@ public class WebInterfaceController {
             // Obtener equipos para MST
             List<Equipo> equiposParaMST = ligaService.obtenerTodosLosEquipos().stream().limit(estadios.size()).toList();
             
-            // Ejecutar MST Kruskal
+            // Ejecutar MST Kruskal con múltiples variaciones
             long startTime = System.currentTimeMillis();
-            MSTAlgorithm.ResultadoMST resultado = 
-                mstAlgorithm.algoritmoKruskal(equiposParaMST);
+            MSTAlgorithm.ResultadoMultiplesMST resultadoMultiple = 
+                mstAlgorithm.algoritmoMultiplesMST(equiposParaMST);
             long endTime = System.currentTimeMillis();
             
             double tiempoEjecucion = (endTime - startTime) / 1000.0;
             
-            System.out.println("🏆 DEBUG Resultado Kruskal: " + resultado.getAristas().size() + " aristas en MST");
-            System.out.println("💰 DEBUG Costo total: " + resultado.getCostoTotal());
+            MSTAlgorithm.ResultadoMST mejorMST = resultadoMultiple.getMejorMST();
+            
+            System.out.println("🏆 DEBUG Múltiples MST: " + resultadoMultiple.getVariaciones().size() + " variaciones");
+            if (mejorMST != null) {
+                System.out.println("🥇 DEBUG Mejor MST: " + mejorMST.getAristas().size() + " aristas");
+                System.out.println("💰 DEBUG Mejor costo: " + mejorMST.getCostoTotal());
+            }
             System.out.println("⏱️ DEBUG Tiempo: " + tiempoEjecucion + " segundos");
             
-            // Debug detallado de aristas
-            System.out.println("📊 DEBUG ARISTAS MST KRUSKAL:");
-            for (MSTAlgorithm.AristaConexion arista : resultado.getAristas()) {
-                System.out.println("   " + arista.getOrigen().getNombre() + 
-                                 " <-> " + arista.getDestino().getNombre() + 
-                                 " (Peso: " + arista.getCosto() + ")");
+            // Debug detallado de todas las variaciones
+            System.out.println("📊 DEBUG TODAS LAS VARIACIONES MST:");
+            for (int i = 0; i < resultadoMultiple.getVariaciones().size(); i++) {
+                MSTAlgorithm.ResultadoMST variacion = resultadoMultiple.getVariaciones().get(i);
+                System.out.println("   Variación " + (i + 1) + ": Costo " + variacion.getCostoTotal() + 
+                                 " (" + variacion.getAristas().size() + " aristas)" + 
+                                 (i == 0 ? " 🏆 ÓPTIMO" : ""));
             }
             
-            model.addAttribute("resultado", resultado);
+            model.addAttribute("resultadoMultiple", resultadoMultiple);
+            model.addAttribute("resultado", mejorMST);
             model.addAttribute("equipos", ligaService.obtenerTodosLosEquipos());
             model.addAttribute("estadios", ligaService.obtenerTodosLosEstadios());
             model.addAttribute("estadiosUsados", estadios);
@@ -1110,27 +1304,34 @@ public class WebInterfaceController {
             // Obtener equipos para MST
             List<Equipo> equiposParaMST = ligaService.obtenerTodosLosEquipos().stream().limit(estadios.size()).toList();
             
-            // Ejecutar MST Prim
+            // Ejecutar MST Prim con múltiples variaciones
             long startTime = System.currentTimeMillis();
-            MSTAlgorithm.ResultadoMST resultado = 
-                mstAlgorithm.algoritmoPrim(equiposParaMST);
+            MSTAlgorithm.ResultadoMultiplesMST resultadoMultiple = 
+                mstAlgorithm.algoritmoMultiplesMST(equiposParaMST);
             long endTime = System.currentTimeMillis();
             
             double tiempoEjecucion = (endTime - startTime) / 1000.0;
             
-            System.out.println("🏆 DEBUG Resultado Prim: " + resultado.getAristas().size() + " aristas en MST");
-            System.out.println("💰 DEBUG Costo total: " + resultado.getCostoTotal());
+            MSTAlgorithm.ResultadoMST mejorMST = resultadoMultiple.getMejorMST();
+            
+            System.out.println("🏆 DEBUG Múltiples MST Prim: " + resultadoMultiple.getVariaciones().size() + " variaciones");
+            if (mejorMST != null) {
+                System.out.println("🥇 DEBUG Mejor MST: " + mejorMST.getAristas().size() + " aristas");
+                System.out.println("💰 DEBUG Mejor costo: " + mejorMST.getCostoTotal());
+            }
             System.out.println("⏱️ DEBUG Tiempo: " + tiempoEjecucion + " segundos");
             
-            // Debug detallado de aristas
-            System.out.println("📊 DEBUG ARISTAS MST PRIM:");
-            for (MSTAlgorithm.AristaConexion arista : resultado.getAristas()) {
-                System.out.println("   " + arista.getOrigen().getNombre() + 
-                                " <-> " + arista.getDestino().getNombre() + 
-                                " (Peso: " + arista.getCosto() + ")");
+            // Debug detallado de todas las variaciones
+            System.out.println("📊 DEBUG TODAS LAS VARIACIONES MST PRIM:");
+            for (int i = 0; i < resultadoMultiple.getVariaciones().size(); i++) {
+                MSTAlgorithm.ResultadoMST variacion = resultadoMultiple.getVariaciones().get(i);
+                System.out.println("   Variación " + (i + 1) + ": Costo " + variacion.getCostoTotal() + 
+                                 " (" + variacion.getAristas().size() + " aristas)" + 
+                                 (i == 0 ? " 🏆 ÓPTIMO" : ""));
             }
             
-            model.addAttribute("resultado", resultado);
+            model.addAttribute("resultadoMultiple", resultadoMultiple);
+            model.addAttribute("resultado", mejorMST);
             model.addAttribute("equipos", ligaService.obtenerTodosLosEquipos());
             model.addAttribute("estadios", ligaService.obtenerTodosLosEstadios());
             model.addAttribute("estadiosUsados", estadios);
@@ -1156,6 +1357,41 @@ public class WebInterfaceController {
     public String databaseManagement(Model model) {
         model.addAttribute("pageTitle", "🗄️ Gestión de Base de Datos - Liga de Fútbol");
         return "web/database-management";
+    }
+
+    /**
+     * Debug endpoint - verificar datos disponibles
+     */
+    @GetMapping("/debug/datos")
+    @ResponseBody
+    public Map<String, Object> debugDatos() {
+        Map<String, Object> debug = new HashMap<>();
+        
+        try {
+            List<Equipo> equipos = ligaService.obtenerTodosLosEquipos();
+            List<Estadio> estadios = ligaService.obtenerTodosLosEstadios();
+            List<Partido> partidos = ligaService.obtenerTodosLosPartidos();
+            
+            debug.put("equiposCount", equipos.size());
+            debug.put("estadiosCount", estadios.size());
+            debug.put("partidosCount", partidos.size());
+            
+            debug.put("equipos", equipos.stream().limit(3).map(e -> 
+                Map.of("id", e.getId(), "nombre", e.getNombre(), "ciudad", e.getCiudad(),
+                      "conexiones", e.getConexiones().size())).toList());
+            
+            debug.put("estadios", estadios.stream().limit(3).map(e -> 
+                Map.of("id", e.getId(), "nombre", e.getNombre(), "ciudad", e.getCiudad(),
+                      "conexiones", e.getConexiones().size())).toList());
+            
+            debug.put("status", "OK");
+            
+        } catch (Exception e) {
+            debug.put("error", e.getMessage());
+            debug.put("status", "ERROR");
+        }
+        
+        return debug;
     }
 
     /**

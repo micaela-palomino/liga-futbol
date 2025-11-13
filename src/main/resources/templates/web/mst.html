@@ -203,8 +203,146 @@
             </div>
         </div>
 
-        <!-- Real Results Section -->
-        <div class="row mt-4" th:if="${resultado != null}">
+        <!-- Multiple MST Results Section -->
+        <div class="row mt-4" th:if="${resultadoMultiple != null}">
+            <div class="col-12">
+                <div class="card result-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-share-alt"></i> 🌳 Múltiples Variaciones del MST</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Se encontraron <span th:text="${#lists.size(resultadoMultiple.variaciones)}">0</span> variaciones del MST.</strong>
+                            El MST óptimo está marcado con 🏆
+                        </div>
+
+                        <!-- MST Variations -->
+                        <div th:each="variacion, iterStat : ${resultadoMultiple.variaciones}" class="mb-4">
+                            <div class="card" th:classappend="${iterStat.first} ? 'border-warning border-3' : 'border-secondary'">
+                                <div class="card-header" th:classappend="${iterStat.first} ? 'bg-warning text-dark' : 'bg-light'">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <h6 class="mb-0">
+                                                <span th:if="${iterStat.first}">🏆</span>
+                                                <span th:if="${!iterStat.first}">🌳</span>
+                                                MST #<span th:text="${iterStat.count}">1</span>
+                                                <span th:if="${iterStat.first}" class="badge bg-success ms-2">ÓPTIMO</span>
+                                                <span th:if="${!iterStat.first}" class="badge bg-secondary ms-2">ALTERNATIVO</span>
+                                            </h6>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <span class="badge" th:classappend="${iterStat.first} ? 'bg-success' : 'bg-info'">
+                                                Método: <span th:text="${tipoAlgoritmo}">MST</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Summary stats -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-3">
+                                            <div class="alert" th:classappend="${iterStat.first} ? 'alert-success' : 'alert-info'">
+                                                <strong>💰 Costo Total:</strong><br>
+                                                <span class="h5" th:text="${#numbers.formatDecimal(variacion.costoTotal, 1, 2)}">0.00</span> unidades
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="alert alert-light">
+                                                <strong>🔗 Aristas:</strong><br>
+                                                <span class="h5" th:text="${#lists.size(variacion.aristas)}">0</span> conexiones
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="alert alert-light">
+                                                <strong>⏱️ Tiempo:</strong><br>
+                                                <span class="h5" th:text="${tiempoEjecucion}">0.0</span> seg
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="alert" th:classappend="${iterStat.first} ? 'alert-warning' : 'alert-light'">
+                                                <strong>📊 Eficiencia:</strong><br>
+                                                <span th:if="${iterStat.first}">🏆 MÁXIMA</span>
+                                                <span th:if="${!iterStat.first}">📈 BUENA</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Aristas del MST -->
+                                    <div th:if="${not #lists.isEmpty(variacion.aristas)}">
+                                        <h6>
+                                            <span th:if="${iterStat.first}">🏆 Conexiones Óptimas:</span>
+                                            <span th:if="${!iterStat.first}">🌳 Conexiones Alternativas:</span>
+                                        </h6>
+                                        <div class="row">
+                                            <div th:each="arista, aristaIter : ${variacion.aristas}" class="col-md-6 col-lg-4 mb-2">
+                                                <div class="card" th:classappend="${iterStat.first} ? 'border-success' : 'border-info'">
+                                                    <div class="card-body py-2 px-3">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="flex-grow-1">
+                                                                <span class="badge" th:classappend="${iterStat.first} ? 'bg-success' : 'bg-info'" 
+                                                                      th:text="${aristaIter.count}">1</span>
+                                                                <strong th:text="${arista.origen.nombre}">Origen</strong>
+                                                                <br>
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-arrow-down"></i>
+                                                                    <span th:text="${arista.destino.nombre}">Destino</span>
+                                                                </small>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <span class="badge bg-warning text-dark">
+                                                                    <span th:text="${#numbers.formatDecimal(arista.costo, 1, 1)}">0.0</span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Empty aristas warning -->
+                                    <div th:if="${#lists.isEmpty(variacion.aristas)}" class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <strong>Sin conexiones:</strong> No se pudieron generar aristas para esta variación.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comparison Summary -->
+                        <div th:if="${#lists.size(resultadoMultiple.variaciones) > 1}" class="alert alert-primary mt-4">
+                            <h6><i class="fas fa-chart-line"></i> 📊 Comparación de Variaciones:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>🏆 MST Óptimo:</strong> 
+                                    <span th:text="${#numbers.formatDecimal(resultadoMultiple.mejorCosto, 1, 2)}">0.00</span> unidades
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>📈 Total Variaciones:</strong> 
+                                    <span th:text="${#lists.size(resultadoMultiple.variaciones)}">0</span> algoritmos ejecutados
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Teams/Stadiums Used -->
+                        <div th:if="${estadiosUsados}" class="alert alert-success mt-4">
+                            <h6><i class="fas fa-database"></i> 🏟️ Estadios procesados (Base de datos Neo4j):</h6>
+                            <div class="row">
+                                <div th:each="estadio, iterStat : ${estadiosUsados}" class="col-md-6 col-lg-4 mb-1">
+                                    <span class="badge bg-success me-1" th:text="${iterStat.count}">1</span>
+                                    <strong th:text="${estadio.nombre}">Estadio</strong>
+                                    <small class="text-muted" th:text="'(' + ${estadio.ciudad} + ')'"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single MST Result (fallback) -->
+        <div class="row mt-4" th:if="${resultado != null and resultadoMultiple == null}">
             <div class="col-md-8">
                 <div class="card result-card">
                     <div class="card-header bg-success text-white">

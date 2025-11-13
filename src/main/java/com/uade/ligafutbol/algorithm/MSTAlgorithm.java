@@ -165,6 +165,97 @@ public class MSTAlgorithm {
         }
     }
     
+    /**
+     * Genera múltiples variaciones de MST para comparar opciones
+     */
+    public ResultadoMultiplesMST algoritmoMultiplesMST(List<Equipo> equipos) {
+        List<ResultadoMST> variaciones = new ArrayList<>();
+        
+        // MST con Prim (comenzando desde diferentes nodos)
+        for (int i = 0; i < Math.min(equipos.size(), 3); i++) {
+            ResultadoMST mstPrim = algoritmoPrimDesdeNodo(equipos, i);
+            if (!mstPrim.getAristas().isEmpty()) {
+                variaciones.add(mstPrim);
+            }
+        }
+        
+        // MST con Kruskal
+        ResultadoMST mstKruskal = algoritmoKruskal(equipos);
+        if (!mstKruskal.getAristas().isEmpty()) {
+            variaciones.add(mstKruskal);
+        }
+        
+        // Ordenar por costo (el primero será el óptimo)
+        variaciones.sort((a, b) -> Double.compare(a.getCostoTotal(), b.getCostoTotal()));
+        
+        return new ResultadoMultiplesMST(variaciones);
+    }
+    
+    /**
+     * Algoritmo de Prim comenzando desde un nodo específico
+     */
+    private ResultadoMST algoritmoPrimDesdeNodo(List<Equipo> equipos, int indiceInicio) {
+        if (equipos.isEmpty() || indiceInicio >= equipos.size()) {
+            return new ResultadoMST(new ArrayList<>(), 0.0);
+        }
+        
+        Set<Equipo> visitados = new HashSet<>();
+        List<AristaConexion> aristasSeleccionadas = new ArrayList<>();
+        PriorityQueue<AristaConexion> cola = new PriorityQueue<>();
+        double costoTotal = 0.0;
+        
+        // Comenzar con el equipo en el índice especificado
+        Equipo inicio = equipos.get(indiceInicio);
+        visitados.add(inicio);
+        
+        // Agregar todas las conexiones del equipo inicial
+        for (ConexionEquipo conexion : inicio.getConexiones()) {
+            cola.offer(new AristaConexion(inicio, conexion.getEquipoDestino(), conexion.getCosto()));
+        }
+        
+        while (!cola.isEmpty() && visitados.size() < equipos.size()) {
+            AristaConexion arista = cola.poll();
+            
+            if (visitados.contains(arista.destino)) {
+                continue;
+            }
+            
+            // Agregar la arista al MST
+            aristasSeleccionadas.add(arista);
+            costoTotal += arista.costo;
+            visitados.add(arista.destino);
+            
+            // Agregar las conexiones del nuevo equipo visitado
+            for (ConexionEquipo conexion : arista.destino.getConexiones()) {
+                if (!visitados.contains(conexion.getEquipoDestino())) {
+                    cola.offer(new AristaConexion(arista.destino, conexion.getEquipoDestino(), conexion.getCosto()));
+                }
+            }
+        }
+        
+        return new ResultadoMST(aristasSeleccionadas, costoTotal);
+    }
+    
+    public static class ResultadoMultiplesMST {
+        private List<ResultadoMST> variaciones;
+        
+        public ResultadoMultiplesMST(List<ResultadoMST> variaciones) {
+            this.variaciones = variaciones;
+        }
+        
+        public List<ResultadoMST> getVariaciones() {
+            return variaciones;
+        }
+        
+        public ResultadoMST getMejorMST() {
+            return variaciones.isEmpty() ? null : variaciones.get(0);
+        }
+        
+        public double getMejorCosto() {
+            return getMejorMST() != null ? getMejorMST().getCostoTotal() : Double.MAX_VALUE;
+        }
+    }
+
     public static class ResultadoMST {
         private List<AristaConexion> aristas;
         private double costoTotal;

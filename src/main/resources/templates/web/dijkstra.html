@@ -110,6 +110,17 @@
                                     </select>
                                 </div>
 
+                                <!-- Mostrar Todos los Caminos -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="mostrarTodos" value="true" id="mostrarTodos">
+                                        <label class="form-check-label" for="mostrarTodos">
+                                            🛣️ Mostrar todos los caminos posibles
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Marca esta opción para ver múltiples rutas con el óptimo destacado 🏆</small>
+                                </div>
+
                                 <!-- Submit Button -->
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="fas fa-search"></i> Calcular Ruta entre Equipos
@@ -151,6 +162,17 @@
                                             Estadio
                                         </option>
                                     </select>
+                                </div>
+
+                                <!-- Mostrar Todos los Caminos -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="mostrarTodos" value="true" id="mostrarTodosEstadios">
+                                        <label class="form-check-label" for="mostrarTodosEstadios">
+                                            🏟️ Mostrar todos los caminos posibles
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Marca esta opción para ver múltiples rutas con el óptimo destacado 🏆</small>
                                 </div>
 
                                 <!-- Submit Button for Estadios -->
@@ -198,8 +220,128 @@
             </div>
         </div>
 
-        <!-- Results Section -->
-        <div class="row mt-4" th:if="${resultado != null}">
+        <!-- Results Section - Multiple Paths -->
+        <div class="row mt-4" th:if="${resultadoMultiple != null and mostrarTodos}">
+            <div class="col-12">
+                <div class="card result-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-route"></i> 🛣️ Todos los Caminos Posibles - Dijkstra</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Se encontraron <span th:text="${#lists.size(resultadoMultiple.caminos)}">0</span> caminos diferentes.</strong>
+                            El camino óptimo está marcado con 🏆
+                        </div>
+
+                        <!-- Equipos Results -->
+                        <div th:if="${tipoResultado == 'equipos'}">
+                            <h6><i class="fas fa-users"></i> 🛣️ Rutas entre Equipos:</h6>
+                            <div th:each="camino, iterStat : ${resultadoMultiple.caminos}" class="mb-3">
+                                <div class="card" th:classappend="${iterStat.first} ? 'border-warning' : 'border-secondary'">
+                                    <div class="card-header" th:classappend="${iterStat.first} ? 'bg-warning text-dark' : 'bg-light'">
+                                        <h6 class="mb-0">
+                                            <span th:if="${iterStat.first}">🏆</span>
+                                            <span th:if="${!iterStat.first}">🛣️</span>
+                                            Ruta #<span th:text="${iterStat.count}">1</span>
+                                            <span th:if="${iterStat.first}" class="badge bg-success ms-2">ÓPTIMO</span>
+                                            <span th:if="${!iterStat.first}" class="badge bg-secondary ms-2">ALTERNATIVO</span>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="alert" th:classappend="${iterStat.first} ? 'alert-success' : 'alert-info'">
+                                                    <strong>Distancia Total:</strong> 
+                                                    <span th:if="${camino.costo != null and camino.costo < 10000}" 
+                                                          th:text="${#numbers.formatDecimal(camino.costo, 0, 2)}">0.00</span>
+                                                    <span th:if="${camino.costo == null or camino.costo >= 10000}">
+                                                        <span th:text="${camino.costo != null ? #strings.substring(#strings.toString(camino.costo), 0, 6) + '...' : 'N/A'}">N/A</span>
+                                                    </span> km
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="alert alert-light">
+                                                    <strong>Paradas:</strong> <span th:text="${#lists.size(camino.camino)}">0</span> equipos
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="path-card card mt-2">
+                                            <div class="card-body">
+                                                <h6>
+                                                    <span th:if="${iterStat.first}">🏆 Camino Óptimo:</span>
+                                                    <span th:if="${!iterStat.first}">🛣️ Camino Alternativo:</span>
+                                                </h6>
+                                                <ol>
+                                                    <li th:each="equipo : ${camino.camino}" class="mb-2">
+                                                        <strong th:text="${equipo.nombre}">Equipo</strong>
+                                                        <small class="text-muted">(<span th:text="${equipo.ciudad}">Ciudad</span>)</small>
+                                                    </li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Estadios Results -->
+                        <div th:if="${tipoResultado == 'estadios'}">
+                            <h6><i class="fas fa-building"></i> 🏟️ Rutas entre Estadios:</h6>
+                            <div th:each="camino, iterStat : ${resultadoMultiple.caminos}" class="mb-3">
+                                <div class="card" th:classappend="${iterStat.first} ? 'border-warning' : 'border-secondary'">
+                                    <div class="card-header" th:classappend="${iterStat.first} ? 'bg-warning text-dark' : 'bg-light'">
+                                        <h6 class="mb-0">
+                                            <span th:if="${iterStat.first}">🏆</span>
+                                            <span th:if="${!iterStat.first}">🏟️</span>
+                                            Ruta #<span th:text="${iterStat.count}">1</span>
+                                            <span th:if="${iterStat.first}" class="badge bg-success ms-2">ÓPTIMO</span>
+                                            <span th:if="${!iterStat.first}" class="badge bg-secondary ms-2">ALTERNATIVO</span>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="alert" th:classappend="${iterStat.first} ? 'alert-success' : 'alert-info'">
+                                                    <strong>Distancia Total:</strong> 
+                                                    <span th:if="${camino.costo != null and camino.costo < 10000}" 
+                                                          th:text="${#numbers.formatDecimal(camino.costo, 0, 2)}">0.00</span>
+                                                    <span th:if="${camino.costo == null or camino.costo >= 10000}">
+                                                        <span th:text="${camino.costo != null ? #strings.substring(#strings.toString(camino.costo), 0, 6) + '...' : 'N/A'}">N/A</span>
+                                                    </span> km
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="alert alert-light">
+                                                    <strong>Paradas:</strong> <span th:text="${#lists.size(camino.camino)}">0</span> estadios
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="path-card card mt-2">
+                                            <div class="card-body">
+                                                <h6>
+                                                    <span th:if="${iterStat.first}">🏆 Camino Óptimo:</span>
+                                                    <span th:if="${!iterStat.first}">🏟️ Camino Alternativo:</span>
+                                                </h6>
+                                                <ol>
+                                                    <li th:each="estadio : ${camino.camino}" class="mb-2">
+                                                        <strong th:text="${estadio.nombre}">Estadio</strong>
+                                                        <small class="text-muted">(<span th:text="${estadio.ciudad}">Ciudad</span>)</small>
+                                                    </li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section - Single Path (Original) -->
+        <div class="row mt-4" th:if="${resultado != null and !mostrarTodos}">
             <div class="col-12">
                 <div class="card result-card">
                     <div class="card-header bg-success text-white">
