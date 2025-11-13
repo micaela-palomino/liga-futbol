@@ -85,7 +85,6 @@
                                 <select class="form-select" id="mstAlgorithm" name="mstAlgorithm">
                                     <option value="kruskal">🏗️ Kruskal (Union-Find)</option>
                                     <option value="prim">🌱 Prim (Crecimiento)</option>
-                                    <option value="boruvka">🔄 Borůvka (Paralelo)</option>
                                 </select>
                             </div>
 
@@ -104,9 +103,7 @@
                                 <label for="weightType" class="form-label">⚖️ Tipo de Peso</label>
                                 <select class="form-select" id="weightType" name="weightType">
                                     <option value="distance">📏 Distancia Geográfica</option>
-                                    <option value="cost">💰 Costo de Construcción</option>
                                     <option value="time">⏱️ Tiempo de Viaje</option>
-                                    <option value="capacity">👥 Capacidad de Transporte</option>
                                 </select>
                             </div>
 
@@ -170,12 +167,6 @@
                         <div class="alert alert-info">
                             <h6>🌱 Algoritmo de Prim:</h6>
                             <p>Crece el árbol desde un nodo inicial, siempre agregando la arista de menor peso que conecte un nuevo nodo.</p>
-                            <small><strong>Complejidad:</strong> O(E log V)</small>
-                        </div>
-
-                        <div class="alert alert-warning">
-                            <h6>🔄 Algoritmo de Borůvka:</h6>
-                            <p>En cada iteración, cada componente conectada encuentra su arista de menor peso y la agrega.</p>
                             <small><strong>Complejidad:</strong> O(E log V)</small>
                         </div>
 
