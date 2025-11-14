@@ -105,6 +105,8 @@
                                 </select>
                             </div>
 
+                            
+
                             <div class="mb-3">
                                 <label for="graphType" class="form-label">🔄 Tipo de Grafo</label>
                                 <select class="form-select" id="graphType" name="graphType">
@@ -336,8 +338,8 @@
                     <strong>📊 Estadísticas del Grafo:</strong><br>
                     ⚽ Equipos: ${grafoData.totalEquipos} | 
                     🏟️ Estadios: ${grafoData.totalEstadios} | 
-                    🔗 Partidos: ${grafoData.totalPartidos} | 
-                    📈 Conexiones: ${grafoData.links.length}
+                    🔗 Conexiones de estadios: ${grafoData.totalConexionesEstadios} | 
+                    📈 Aristas renderizadas: ${grafoData.links.length}
                 </div>
             `);
         }
@@ -392,13 +394,14 @@
                     <p><strong>Estadios:</strong> ${grafoData ? grafoData.totalEstadios : 'N/A'}</p>
                 </div>
                 <div class="alert alert-info">
-                    <p>🔍 <strong>Resultado:</strong> El grafo muestra las conexiones reales entre equipos y estadios de la liga. 
-                    ${grafoData ? `Hay ${grafoData.totalEquipos} equipos conectados por ${grafoData.totalPartidos} partidos.` : ''}</p>
+                    <p>🔍 <strong>Resultado:</strong> El grafo muestra las conexiones reales entre estadios de la liga (aristas = conexiones de estadios).
+                    ${grafoData ? `Hay ${grafoData.totalEstadios} estadios y ${grafoData.totalConexionesEstadios} conexiones.` : ''}</p>
                 </div>
             `;
             
             document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
         });
+
 
         // Update form based on algorithm selection
         document.getElementById('algoritmoGrafo').addEventListener('change', function() {

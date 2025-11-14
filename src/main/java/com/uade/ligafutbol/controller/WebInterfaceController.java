@@ -2,6 +2,7 @@ package com.uade.ligafutbol.controller;
 
 import com.uade.ligafutbol.algorithm.*;
 import com.uade.ligafutbol.model.ConexionEquipo;
+import com.uade.ligafutbol.model.ConexionEstadio;
 import com.uade.ligafutbol.model.Equipo;
 import com.uade.ligafutbol.model.Estadio;
 import com.uade.ligafutbol.model.Partido;
@@ -11,17 +12,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Controlador para la interfaz web de algoritmos
@@ -56,6 +55,9 @@ public class WebInterfaceController {
     
     @Autowired
     private MSTAlgorithm mstAlgorithm;
+    
+    @Autowired
+    private MSTEstadioAlgorithm mstEstadioAlgorithm;
 
     /**
      * Página principal con todos los algoritmos
@@ -892,145 +894,68 @@ public class WebInterfaceController {
     }
     
     /**
-     * Endpoint para obtener datos del grafo desde Neo4j (mejorado)
+     * Datos del grafo (para visualización) basados en conexiones de estadios
      */
     @GetMapping("/api/grafo/datos")
     @ResponseBody
     public Map<String, Object> obtenerDatosGrafo() {
         Map<String, Object> datos = new HashMap<>();
-        
         try {
             List<Equipo> equipos = ligaService.obtenerTodosLosEquipos();
             List<Estadio> estadios = ligaService.obtenerTodosLosEstadios();
-            List<Partido> partidos = ligaService.obtenerTodosLosPartidos();
-            
-            System.out.println("Datos Neo4j - Equipos: " + equipos.size() + ", Estadios: " + estadios.size() + ", Partidos: " + partidos.size());
-            
-            // Nodos del grafo
+
+            // Nodos
             List<Map<String, Object>> nodos = new ArrayList<>();
-            
-            // Agregar equipos como nodos
             for (Equipo equipo : equipos) {
-                if (equipo != null && equipo.getNombre() != null) {
-                    Map<String, Object> nodo = new HashMap<>();
-                    nodo.put("id", "equipo_" + equipo.getId());
-                    nodo.put("name", equipo.getNombre());
-                    nodo.put("type", "equipo");
-                    nodo.put("group", 1);
-                    nodos.add(nodo);
+                if (equipo != null && equipo.getId() != null) {
+                    Map<String, Object> n = new HashMap<>();
+                    n.put("id", "equipo_" + equipo.getId());
+                    n.put("name", equipo.getNombre());
+                    n.put("type", "equipo");
+                    n.put("group", 1);
+                    nodos.add(n);
                 }
             }
-            
-            // Agregar estadios como nodos
             for (Estadio estadio : estadios) {
-                if (estadio != null && estadio.getNombre() != null) {
-                    Map<String, Object> nodo = new HashMap<>();
-                    nodo.put("id", "estadio_" + estadio.getId());
-                    nodo.put("name", estadio.getNombre());
-                    nodo.put("type", "estadio");
-                    nodo.put("group", 2);
-                    nodos.add(nodo);
+                if (estadio != null && estadio.getId() != null) {
+                    Map<String, Object> n = new HashMap<>();
+                    n.put("id", "estadio_" + estadio.getId());
+                    n.put("name", estadio.getNombre());
+                    n.put("type", "estadio");
+                    n.put("group", 2);
+                    nodos.add(n);
                 }
             }
-            
-            // Enlaces del grafo (partidos) - con validaciones
+
+            // Enlaces (conexiones de estadios, de-duplicadas)
             List<Map<String, Object>> enlaces = new ArrayList<>();
-            
-            for (Partido partido : partidos) {
-                if (partido != null && partido.getEquipoLocal() != null && partido.getEquipoVisitante() != null) {
-                    // Enlace entre equipos (partido)
-                    Map<String, Object> enlace = new HashMap<>();
-                    enlace.put("source", "equipo_" + partido.getEquipoLocal().getId());
-                    enlace.put("target", "equipo_" + partido.getEquipoVisitante().getId());
-                    enlace.put("value", 1);
-                    enlaces.add(enlace);
-                    
-                    // Enlace equipo-estadio si existe
-                    if (partido.getEstadio() != null) {
-                        Map<String, Object> enlaceEstadio = new HashMap<>();
-                        enlaceEstadio.put("source", "equipo_" + partido.getEquipoLocal().getId());
-                        enlaceEstadio.put("target", "estadio_" + partido.getEstadio().getId());
-                        enlaceEstadio.put("value", 0.5);
-                        enlaceEstadio.put("type", "estadio");
-                        enlaces.add(enlaceEstadio);
-                    }
+            Set<String> vistos = new HashSet<>();
+            for (Estadio e : estadios) {
+                if (e.getConexiones() == null) continue;
+                for (ConexionEstadio c : e.getConexiones()) {
+                    Estadio d = c.getEstadioDestino();
+                    if (d == null) continue;
+                    String a = e.getId();
+                    String b = d.getId();
+                    String key = a.compareTo(b) <= 0 ? a + "|" + b : b + "|" + a;
+                    if (!vistos.add(key)) continue;
+                    enlaces.add(crearEnlace("estadio_" + a, "estadio_" + b, c.getDistancia() != null ? c.getDistancia() : 1.0, "conexion_estadio"));
                 }
             }
-            
+
             datos.put("nodes", nodos);
             datos.put("links", enlaces);
             datos.put("totalEquipos", equipos.size());
             datos.put("totalEstadios", estadios.size());
-            datos.put("totalPartidos", partidos.size());
-            datos.put("status", "success_neo4j");
-            datos.put("message", "Datos reales desde Neo4j");
-            
-            System.out.println("Grafo generado - Nodos: " + nodos.size() + ", Enlaces: " + enlaces.size());
-            
-        } catch (Exception e) {
-            System.out.println("Error Neo4j: " + e.getMessage());
-            // Si hay error, usar datos de prueba
-            datos = crearDatosPrueba();
+            datos.put("totalConexionesEstadios", enlaces.size());
+            datos.put("status", "success");
+            return datos;
+        } catch (Exception ex) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", ex.getMessage());
+            error.put("status", "error");
+            return error;
         }
-        
-        return datos;
-    }
-    
-    /**
-     * Datos de prueba para mostrar el grafo cuando Neo4j no funciona
-     */
-    private Map<String, Object> crearDatosPrueba() {
-        Map<String, Object> datos = new HashMap<>();
-        
-        // Nodos de prueba
-        List<Map<String, Object>> nodos = new ArrayList<>();
-        
-        // Equipos de prueba
-        String[] nombresEquipos = {"Boca Juniors", "River Plate", "Independiente", "Racing", "San Lorenzo"};
-        for (int i = 0; i < nombresEquipos.length; i++) {
-            Map<String, Object> nodo = new HashMap<>();
-            nodo.put("id", "equipo_" + i);
-            nodo.put("name", nombresEquipos[i]);
-            nodo.put("type", "equipo");
-            nodo.put("group", 1);
-            nodos.add(nodo);
-        }
-        
-        // Estadios de prueba
-        String[] nombresEstadios = {"La Bombonera", "El Monumental", "Libertadores de América"};
-        for (int i = 0; i < nombresEstadios.length; i++) {
-            Map<String, Object> nodo = new HashMap<>();
-            nodo.put("id", "estadio_" + i);
-            nodo.put("name", nombresEstadios[i]);
-            nodo.put("type", "estadio");
-            nodo.put("group", 2);
-            nodos.add(nodo);
-        }
-        
-        // Enlaces de prueba
-        List<Map<String, Object>> enlaces = new ArrayList<>();
-        
-        // Partidos entre equipos
-        enlaces.add(crearEnlace("equipo_0", "equipo_1", 1, "partido"));
-        enlaces.add(crearEnlace("equipo_1", "equipo_2", 1, "partido"));
-        enlaces.add(crearEnlace("equipo_2", "equipo_3", 1, "partido"));
-        enlaces.add(crearEnlace("equipo_3", "equipo_4", 1, "partido"));
-        enlaces.add(crearEnlace("equipo_0", "equipo_4", 1, "partido"));
-        
-        // Enlaces equipos-estadios
-        enlaces.add(crearEnlace("equipo_0", "estadio_0", 0.5, "estadio"));
-        enlaces.add(crearEnlace("equipo_1", "estadio_1", 0.5, "estadio"));
-        enlaces.add(crearEnlace("equipo_2", "estadio_2", 0.5, "estadio"));
-        
-        datos.put("nodes", nodos);
-        datos.put("links", enlaces);
-        datos.put("totalEquipos", 5);
-        datos.put("totalEstadios", 3);
-        datos.put("totalPartidos", 5);
-        datos.put("status", "fallback");
-        datos.put("message", "Usando datos de prueba - Neo4j no disponible");
-        
-        return datos;
     }
     
     private Map<String, Object> crearEnlace(String source, String target, double value, String type) {
@@ -1229,18 +1154,15 @@ public class WebInterfaceController {
             
             System.out.println("🔧 DEBUG: Usando " + estadios.size() + " estadios para MST Kruskal");
             
-            // Obtener equipos para MST
-            List<Equipo> equiposParaMST = ligaService.obtenerTodosLosEquipos().stream().limit(estadios.size()).toList();
-            
-            // Ejecutar MST Kruskal con múltiples variaciones
+            // Ejecutar MST Kruskal con múltiples variaciones (basado en estadios)
             long startTime = System.currentTimeMillis();
-            MSTAlgorithm.ResultadoMultiplesMST resultadoMultiple = 
-                mstAlgorithm.algoritmoMultiplesMST(equiposParaMST);
+            MSTEstadioAlgorithm.ResultadoMultiplesMST resultadoMultiple = 
+                mstEstadioAlgorithm.algoritmoMultiplesMST(estadios);
             long endTime = System.currentTimeMillis();
             
             double tiempoEjecucion = (endTime - startTime) / 1000.0;
             
-            MSTAlgorithm.ResultadoMST mejorMST = resultadoMultiple.getMejorMST();
+            MSTEstadioAlgorithm.ResultadoMST mejorMST = resultadoMultiple.getMejorMST();
             
             System.out.println("🏆 DEBUG Múltiples MST: " + resultadoMultiple.getVariaciones().size() + " variaciones");
             if (mejorMST != null) {
@@ -1252,7 +1174,7 @@ public class WebInterfaceController {
             // Debug detallado de todas las variaciones
             System.out.println("📊 DEBUG TODAS LAS VARIACIONES MST:");
             for (int i = 0; i < resultadoMultiple.getVariaciones().size(); i++) {
-                MSTAlgorithm.ResultadoMST variacion = resultadoMultiple.getVariaciones().get(i);
+                MSTEstadioAlgorithm.ResultadoMST variacion = resultadoMultiple.getVariaciones().get(i);
                 System.out.println("   Variación " + (i + 1) + ": Costo " + variacion.getCostoTotal() + 
                                  " (" + variacion.getAristas().size() + " aristas)" + 
                                  (i == 0 ? " 🏆 ÓPTIMO" : ""));
@@ -1293,39 +1215,32 @@ public class WebInterfaceController {
                     ? ligaService.obtenerEstadiosPorIds(estadiosSeleccionados)
                     : ligaService.obtenerTodosLosEstadios();
 
-            // Obtener equipos para MST (mismo tamaño que estadios disponibles)
-            List<Equipo> equiposParaMST = ligaService.obtenerTodosLosEquipos().stream().limit(estadios.size()).toList();
-
-            // Resolver estadio de inicio y mapearlo a índice de equipo
+            // Resolver índice del estadio de inicio directamente
             Estadio estadioInicio = (estadioInicioId != null && !estadioInicioId.isBlank())
                     ? ligaService.obtenerEstadioPorId(estadioInicioId)
                     : null;
             int indiceInicio = 0;
             if (estadioInicio != null) {
-                for (int i = 0; i < equiposParaMST.size(); i++) {
-                    Equipo eq = equiposParaMST.get(i);
-                    if (eq.getEstadio() != null && estadioInicio.getId().equals(eq.getEstadio().getId())) {
-                        indiceInicio = i;
-                        break;
-                    }
+                for (int i = 0; i < estadios.size(); i++) {
+                    if (estadios.get(i).getId().equals(estadioInicio.getId())) { indiceInicio = i; break; }
                 }
             }
 
             long start = System.currentTimeMillis();
-            MSTAlgorithm.ResultadoMST primDesdeInicio = mstAlgorithm.algoritmoPrimDesdeNodo(equiposParaMST, indiceInicio);
-            // Generar otras variaciones (Prim desde otros nodos + Kruskal)
-            MSTAlgorithm.ResultadoMultiplesMST otras = mstAlgorithm.algoritmoMultiplesMST(equiposParaMST);
+            MSTEstadioAlgorithm.ResultadoMST primDesdeInicio = mstEstadioAlgorithm.algoritmoPrimDesdeNodo(estadios, indiceInicio);
+            // Generar otras variaciones (Prim desde otros nodos + Kruskal) sobre estadios
+            MSTEstadioAlgorithm.ResultadoMultiplesMST otras = mstEstadioAlgorithm.algoritmoMultiplesMST(estadios);
             // Construir una lista que comience con el resultado desde el nodo seleccionado
-            java.util.List<MSTAlgorithm.ResultadoMST> variaciones = new java.util.ArrayList<>();
+            java.util.List<MSTEstadioAlgorithm.ResultadoMST> variaciones = new java.util.ArrayList<>();
             variaciones.add(primDesdeInicio);
-            for (MSTAlgorithm.ResultadoMST v : otras.getVariaciones()) {
+            for (MSTEstadioAlgorithm.ResultadoMST v : otras.getVariaciones()) {
                 // Evitar duplicados simples por costo y cantidad de aristas
                 if (!(Math.abs(v.getCostoTotal() - primDesdeInicio.getCostoTotal()) < 1e-9
                         && v.getAristas().size() == primDesdeInicio.getAristas().size())) {
                     variaciones.add(v);
                 }
             }
-            MSTAlgorithm.ResultadoMultiplesMST resultadoMultiple = new MSTAlgorithm.ResultadoMultiplesMST(variaciones);
+            MSTEstadioAlgorithm.ResultadoMultiplesMST resultadoMultiple = new MSTEstadioAlgorithm.ResultadoMultiplesMST(variaciones);
 
             long end = System.currentTimeMillis();
             double tiempoEjecucion = (end - start) / 1000.0;
