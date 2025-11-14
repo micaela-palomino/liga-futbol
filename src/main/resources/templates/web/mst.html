@@ -79,24 +79,13 @@
                         <h5><i class="fas fa-cogs"></i> 🔧 Configuración del MST</h5>
                     </div>
                     <div class="card-body">
-                        <form id="mstForm">
+                        <form id="mstForm" method="post">
                             <div class="mb-3">
                                 <label for="mstAlgorithm" class="form-label">🔍 Algoritmo MST</label>
                                 <select class="form-select" id="mstAlgorithm" name="mstAlgorithm">
                                     <option value="kruskal">🏗️ Kruskal (Union-Find)</option>
                                     <option value="prim">🌱 Prim (Crecimiento)</option>
                                 </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="estadios" class="form-label">🏟️ Seleccionar Estadios</label>
-                                <select class="form-select" id="estadios" name="estadios" multiple size="5">
-                                    <option th:each="estadio : ${estadios}" 
-                                            th:value="${estadio.id}" 
-                                            th:text="${estadio.nombre + ' (' + estadio.ciudad + ')'}">
-                                    </option>
-                                </select>
-                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples estadios</div>
                             </div>
 
                             <div class="mb-3">
@@ -109,7 +98,7 @@
 
                             <div class="mb-3">
                                 <label for="startNode" class="form-label">🏁 Nodo Inicial (solo Prim)</label>
-                                <select class="form-select" id="startNode" name="startNode">
+                                <select class="form-select" id="startNode" name="estadioInicioId">
                                     <option th:each="estadio : ${estadios}" 
                                             th:value="${estadio.id}" 
                                             th:text="${estadio.nombre}">
@@ -131,15 +120,6 @@
                                     <input class="form-check-input" type="checkbox" id="showEdges" name="showEdges" checked>
                                     <label class="form-check-label" for="showEdges">
                                         🔗 Listar Aristas del MST
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="stepByStep" name="stepByStep">
-                                    <label class="form-check-label" for="stepByStep">
-                                        👣 Ejecución Paso a Paso
                                     </label>
                                 </div>
                             </div>
@@ -184,25 +164,6 @@
             </div>
         </div>
 
-        <!-- MST Visualization -->
-        <div class="row mt-4" id="visualizationSection" style="display: none;">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-secondary text-white">
-                        <h5><i class="fas fa-eye"></i> 👀 Visualización del MST</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mst-visualization" id="mstVisualization">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-share-alt fa-3x mb-3"></i>
-                                <p>El árbol de expansión mínima aparecerá aquí</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Multiple MST Results Section -->
         <div class="row mt-4" th:if="${resultadoMultiple != null}">
             <div class="col-12">
@@ -234,6 +195,9 @@
                                         <div class="col-md-4 text-end">
                                             <span class="badge" th:classappend="${iterStat.first} ? 'bg-success' : 'bg-info'">
                                                 Método: <span th:text="${tipoAlgoritmo}">MST</span>
+                                            </span>
+                                            <span class="badge bg-dark ms-2">
+                                                Total: <span th:text="${#numbers.formatDecimal(variacion.costoTotal, 1, 2)}">0.00</span>
                                             </span>
                                         </div>
                                     </div>
@@ -268,11 +232,11 @@
                                         </div>
                                     </div>
 
-                                    <!-- Aristas del MST -->
+                                    <!-- Camino (orden de aristas seleccionadas) -->
                                     <div th:if="${not #lists.isEmpty(variacion.aristas)}">
-                                        <h6>
-                                            <span th:if="${iterStat.first}">🏆 Conexiones Óptimas:</span>
-                                            <span th:if="${!iterStat.first}">🌳 Conexiones Alternativas:</span>
+                                        <h6 class="mb-2">
+                                            <span th:if="${iterStat.first}">🏆 Camino al Óptimo (orden de selección):</span>
+                                            <span th:if="${!iterStat.first}">🌳 Camino Alternativo (orden de selección):</span>
                                         </h6>
                                         <div class="row">
                                             <div th:each="arista, aristaIter : ${variacion.aristas}" class="col-md-6 col-lg-4 mb-2">
@@ -291,7 +255,7 @@
                                                             </div>
                                                             <div class="text-end">
                                                                 <span class="badge bg-warning text-dark">
-                                                                    <span th:text="${#numbers.formatDecimal(arista.costo, 1, 1)}">0.0</span>
+                                                                    Peso: <span th:text="${#numbers.formatDecimal(arista.costo, 1, 2)}">0.00</span>
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -346,7 +310,12 @@
             <div class="col-md-8">
                 <div class="card result-card">
                     <div class="card-header bg-success text-white">
-                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado del MST</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-trophy"></i> 🏆 Resultado del MST</h5>
+                            <span class="badge bg-dark">
+                                Total: <span th:text="${#numbers.formatDecimal(resultado.costoTotal, 1, 2)}">0.00</span>
+                            </span>
+                        </div>
                     </div>
                     <div class="card-body">
                         <!-- Summary Information -->
@@ -368,6 +337,16 @@
                                     <h4 class="text-info mb-1" th:text="${tipoAlgoritmo}">ALGORITMO</h4>
                                     <small>🧮 Método Usado</small>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Distancias (pesos) del MST -->
+                        <div th:if="${resultado != null and not #lists.isEmpty(resultado.aristas)}" class="mb-3">
+                            <h6><i class="fas fa-ruler-horizontal"></i> 📏 Distancias del MST (pesos de aristas):</h6>
+                            <div>
+                                <span th:each="e : ${resultado.aristas}"
+                                      class="badge bg-light text-dark me-1 mb-1"
+                                      th:text="${#numbers.formatDecimal(e.costo, 1, 2)}">0.00</span>
                             </div>
                         </div>
 
@@ -443,166 +422,37 @@
             </div>
         </div>
 
-        <!-- Simulated Results Section (fallback) -->
-        <div class="row mt-4" id="resultSection" style="display: none;" th:if="${resultado == null}">
-            <div class="col-md-8">
-                <div class="card result-card">
-                    <div class="card-header bg-success text-white">
-                        <h5><i class="fas fa-trophy"></i> 🏆 Resultado del MST</h5>
-                    </div>
-                    <div class="card-body" id="resultContent">
-                        <!-- Results will be populated here by JavaScript -->
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4" id="edgesSection" style="display: none;">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5><i class="fas fa-list"></i> 🔗 Aristas del MST</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="edge-list" id="edgesList">
-                            <!-- Edges will be populated here by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Show when no algorithm executed -->
         <div class="row mt-4" th:if="${success == null and resultado == null}">
             <div class="col-12">
                 <div class="alert alert-secondary">
                     <h6><i class="fas fa-info-circle"></i> Instrucciones:</h6>
-                    <p>1. Selecciona los estadios para conectar (opcional - si no seleccionas, usará todos)</p>
-                    <p>2. Para Prim, selecciona el estadio de inicio</p>
-                    <p>3. Haz clic en "Ejecutar Kruskal" o "Ejecutar Prim" para generar el MST</p>
-                    <p>4. El algoritmo encontrará el árbol de expansión mínima que conecte todos los estadios con menor costo</p>
+                    <p>1. Elegí Kruskal o Prim. Si elegís Prim, seleccioná el nodo inicial.</p>
+                    <p>2. Hacé clic en "Construir MST" para generar el árbol.</p>
+                    <p>3. Verás el camino seleccionado y su costo total, junto con otros posibles caminos.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Simulated Steps Section (fallback) -->
-        <div class="row mt-4" id="stepsSection" style="display: none;" th:if="${resultado == null}">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5><i class="fas fa-list-ol"></i> 👣 Pasos del Algoritmo</h5>
-                    </div>
-                    <div class="card-body" id="stepsContent">
-                        <!-- Steps will be populated here by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('mstForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const algoritmo = document.getElementById('mstAlgorithm').selectedOptions[0].text;
-            const estadiosSeleccionados = Array.from(document.getElementById('estadios').selectedOptions).map(option => option.text);
-            const weightType = document.getElementById('weightType').selectedOptions[0].text;
-            const showVisualization = formData.get('showVisualization');
-            const showEdges = formData.get('showEdges');
-            const stepByStep = formData.get('stepByStep');
-            
-            const numVertices = estadiosSeleccionados.length;
-            const numAristas = Math.max(0, numVertices - 1); // MST tiene n-1 aristas
-            const pesoTotal = (Math.random() * 1000 + 500).toFixed(2);
-            
-            // Show sections
-            document.getElementById('resultSection').style.display = 'block';
-            if (showVisualization) document.getElementById('visualizationSection').style.display = 'block';
-            if (showEdges) document.getElementById('edgesSection').style.display = 'block';
-            if (stepByStep) document.getElementById('stepsSection').style.display = 'block';
-            
-            // Populate results
-            document.getElementById('resultContent').innerHTML = `
-                <div class="alert alert-success">
-                    <h6>🌳 MST Construido Exitosamente:</h6>
-                    <p><strong>Algoritmo utilizado:</strong> ${algoritmo}</p>
-                    <p><strong>Estadios conectados:</strong> ${numVertices}</p>
-                    <p><strong>Aristas en el MST:</strong> ${numAristas}</p>
-                    <p><strong>Tipo de peso:</strong> ${weightType}</p>
-                    <p><strong>Peso total del MST:</strong> ${pesoTotal} unidades</p>
-                    <p><strong>Tiempo de ejecución:</strong> 0.${Math.floor(Math.random() * 30) + 5} segundos</p>
-                </div>
-                <div class="alert alert-info">
-                    <p>🔗 <strong>Resultado:</strong> Se encontró el árbol de expansión mínima que conecta todos los 
-                    estadios seleccionados con el menor costo total posible.</p>
-                </div>
-                <div class="alert alert-warning">
-                    <p>💰 <strong>Ahorro estimado:</strong> El MST reduce el costo en un ${Math.floor(Math.random() * 30) + 15}% 
-                    comparado con conectar todos los puntos directamente.</p>
-                </div>
-            `;
-            
-            // Populate edges if requested
-            if (showEdges && numVertices > 1) {
-                let edgesContent = '<div class="list-group">';
-                for (let i = 0; i < numAristas; i++) {
-                    const peso = (Math.random() * 100 + 10).toFixed(1);
-                    const nombreEstadio1 = estadiosSeleccionados[i % estadiosSeleccionados.length];
-                    const nombreEstadio2 = estadiosSeleccionados[(i + 1) % estadiosSeleccionados.length];
-                    edgesContent += `
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">${nombreEstadio1} ↔ ${nombreEstadio2}</h6>
-                                <small>${peso}</small>
-                            </div>
-                        </div>
-                    `;
-                }
-                edgesContent += '</div>';
-                document.getElementById('edgesList').innerHTML = edgesContent;
+        // Set form action dynamically based on selected algorithm and submit normally
+        (function() {
+            const form = document.getElementById('mstForm');
+            const algoSelect = document.getElementById('mstAlgorithm');
+            const startNodeSelect = document.getElementById('startNode');
+            function updateAction() {
+                form.action = algoSelect.value === 'prim' ? '/web/mst/prim' : '/web/mst/kruskal';
+                // Mostrar/ocultar selección de inicio para Prim
+                const startDiv = startNodeSelect.closest('.mb-3');
+                startDiv.style.display = algoSelect.value === 'prim' ? 'block' : 'none';
             }
-            
-            // Populate steps if requested
-            if (stepByStep) {
-                const steps = algoritmo.includes('Kruskal') ? 
-                    [
-                        '1️⃣ Ordenar todas las aristas por peso ascendente',
-                        '2️⃣ Inicializar estructura Union-Find',
-                        '3️⃣ Para cada arista en orden...',
-                        '4️⃣ Verificar si forma ciclo usando Union-Find',
-                        '5️⃣ Si no forma ciclo, agregar arista al MST',
-                        '6️⃣ Continuar hasta tener n-1 aristas',
-                        '7️⃣ MST completado'
-                    ] : [
-                        '1️⃣ Seleccionar nodo inicial arbitrario',
-                        '2️⃣ Marcar nodo como parte del MST',
-                        '3️⃣ Encontrar arista de menor peso saliente',
-                        '4️⃣ Agregar nodo destino al MST',
-                        '5️⃣ Actualizar aristas candidatas',
-                        '6️⃣ Repetir hasta incluir todos los nodos',
-                        '7️⃣ MST completado'
-                    ];
-                
-                document.getElementById('stepsContent').innerHTML = `
-                    <div class="alert alert-light">
-                        <h6>👣 Pasos ejecutados por el algoritmo ${algoritmo}:</h6>
-                        <ol class="mb-0">
-                            ${steps.map(step => `<li>${step}</li>`).join('')}
-                        </ol>
-                    </div>
-                `;
-            }
-            
-            document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
-        });
-
-        // Update start node visibility based on algorithm
-        document.getElementById('mstAlgorithm').addEventListener('change', function() {
-            const startNodeGroup = document.getElementById('startNode').closest('.mb-3');
-            const isPrim = this.value === 'prim';
-            startNodeGroup.style.display = isPrim ? 'block' : 'none';
-        });
+            algoSelect.addEventListener('change', updateAction);
+            updateAction();
+        })();
     </script>
 </body>
 </html>

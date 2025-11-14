@@ -18,11 +18,13 @@
             border-color: #28a745;
         }
         .stats-card {
-            background: linear-gradient(135deg, #0f4c3a 0%, #2d5a27 100%);
-            color: white;
+            background: linear-gradient(135deg, #0f4c3a 0%, #2d5a27 100%) !important;
+            color: #ffffff !important;
             border-radius: 15px;
             position: relative;
             overflow: hidden;
+            border: none;
+            height: 100%;
         }
         .stats-card::before {
             content: '';
@@ -34,6 +36,13 @@
             background: rgba(255,255,255,0.1);
             border-radius: 50%;
             transform: rotate(45deg);
+        }
+        .stats-card .card-body {
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
         }
         .navbar-brand {
             font-weight: bold;
@@ -146,7 +155,7 @@
         <!-- Stats Cards -->
         <div class="row mb-4">
             <div class="col-md-4">
-                <div class="card stats-card football-pattern">
+                <div class="card stats-card football-pattern h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-users fa-2x mb-2"></i>
                         <h4 th:text="${#lists.size(equipos)}">4</h4>
@@ -155,7 +164,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card stats-card football-pattern">
+                <div class="card stats-card football-pattern h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-stadium fa-2x mb-2"></i>
                         <h4 th:text="${#lists.size(estadios)}">4</h4>
@@ -164,7 +173,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card stats-card football-pattern">
+                <div class="card stats-card football-pattern h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-code fa-2x mb-2"></i>
                         <h4 th:text="${#maps.size(algoritmos) ?: '6'}">6</h4>

@@ -81,9 +81,6 @@
                                 <select class="form-select" id="algoritmoGrafo" name="algoritmoGrafo">
                                     <option value="bfs">🌊 BFS (Búsqueda en Anchura)</option>
                                     <option value="dfs">🏔️ DFS (Búsqueda en Profundidad)</option>
-                                    <option value="connectivity">🔗 Análisis de Conectividad</option>
-                                    <option value="shortest_path">🛣️ Camino más Corto</option>
-                                    <option value="strongly_connected">💪 Componentes Fuertemente Conectadas</option>
                                 </select>
                             </div>
 
@@ -125,15 +122,6 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="showSteps" name="showSteps">
-                                    <label class="form-check-label" for="showSteps">
-                                        👣 Mostrar Pasos del Algoritmo
-                                    </label>
-                                </div>
-                            </div>
-
                             <button type="submit" class="btn btn-danger text-white fw-bold">
                                 <i class="fas fa-project-diagram"></i> 🚀 Ejecutar Algoritmo de Grafos
                             </button>
@@ -156,21 +144,6 @@
                         <div class="alert alert-warning">
                             <h6>🏔️ DFS (Depth-First Search):</h6>
                             <p>Profundiza en cada rama, como seguir la historia completa de un club antes de pasar al siguiente.</p>
-                        </div>
-
-                        <div class="alert alert-success">
-                            <h6>🔗 Análisis de Conectividad:</h6>
-                            <p>Determina si todos los equipos están conectados en la red de la liga.</p>
-                        </div>
-
-                        <div class="alert alert-primary">
-                            <h6>⚽ Aplicaciones Futbolísticas:</h6>
-                            <ul>
-                                <li>🗺️ Rutas entre estadios</li>
-                                <li>🤝 Conexiones entre equipos</li>
-                                <li>📈 Análisis de rivalidades</li>
-                                <li>🏆 Estructura de torneos</li>
-                            </ul>
                         </div>
                     </div>
                 </div>
@@ -205,20 +178,6 @@
                     </div>
                     <div class="card-body" id="resultContent">
                         <!-- Results will be populated here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Steps Section -->
-        <div class="row mt-4" id="stepsSection" style="display: none;">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5><i class="fas fa-list-ol"></i> 👣 Pasos del Algoritmo</h5>
-                    </div>
-                    <div class="card-body" id="stepsContent">
-                        <!-- Steps will be populated here -->
                     </div>
                 </div>
             </div>
@@ -409,7 +368,6 @@
             const endNode = document.getElementById('endNode').selectedOptions[0]?.text || 'N/A';
             const graphType = document.getElementById('graphType').selectedOptions[0].text;
             const visualize = formData.get('visualize');
-            const showSteps = formData.get('showSteps');
             
             // Show sections
             document.getElementById('resultSection').style.display = 'block';
@@ -417,7 +375,6 @@
                 document.getElementById('graphSection').style.display = 'block';
                 mostrarVisualizacionGrafo();
             }
-            if (showSteps) document.getElementById('stepsSection').style.display = 'block';
             
             // Populate results with real data
             let nodoSeleccionado = grafoData ? grafoData.nodes.find(n => n.name === startNode) : null;
@@ -440,29 +397,6 @@
                 </div>
             `;
             
-            // Populate steps if requested
-            if (showSteps) {
-                const steps = [
-                    '1️⃣ Cargar datos desde Neo4j (equipos, estadios, partidos)',
-                    '2️⃣ Crear nodos para cada equipo y estadio',
-                    '3️⃣ Establecer enlaces basados en partidos programados',
-                    '4️⃣ Aplicar algoritmo de visualización con D3.js',
-                    '5️⃣ Calcular fuerzas de atracción y repulsión',
-                    '6️⃣ Posicionar nodos según el algoritmo seleccionado',
-                    '7️⃣ Renderizar grafo interactivo',
-                    '8️⃣ Mostrar estadísticas y leyenda'
-                ];
-                
-                document.getElementById('stepsContent').innerHTML = `
-                    <div class="alert alert-light">
-                        <h6>👣 Pasos ejecutados por el algoritmo ${algoritmo}:</h6>
-                        <ol class="mb-0">
-                            ${steps.map(step => `<li>${step}</li>`).join('')}
-                        </ol>
-                    </div>
-                `;
-            }
-            
             document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
         });
 
@@ -471,13 +405,8 @@
             const endNodeDiv = document.getElementById('endNodeDiv');
             const value = this.value;
             
-            if (value === 'shortest_path') {
-                endNodeDiv.style.display = 'block';
-                document.getElementById('endNode').required = true;
-            } else {
-                endNodeDiv.style.display = value === 'bfs' || value === 'dfs' ? 'block' : 'none';
-                document.getElementById('endNode').required = false;
-            }
+            endNodeDiv.style.display = value === 'bfs' || value === 'dfs' ? 'block' : 'none';
+            document.getElementById('endNode').required = false;
         });
     </script>
 </body>
