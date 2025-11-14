@@ -86,31 +86,6 @@
                                 <small class="form-text text-muted">Más equipos = mayor tiempo de cálculo</small>
                             </div>
 
-                            <!-- Restricciones -->
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    <i class="fas fa-filter"></i> Restricciones
-                                </label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="restriccionTiempo" name="restricciones" value="tiempo">
-                                    <label class="form-check-label" for="restriccionTiempo">
-                                        Limitar tiempo de viaje
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="restriccionDistancia" name="restricciones" value="distancia">
-                                    <label class="form-check-label" for="restriccionDistancia">
-                                        Limitar distancia máxima
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="restriccionLocal" name="restricciones" value="local">
-                                    <label class="form-check-label" for="restriccionLocal">
-                                        Equipos locales prioritarios
-                                    </label>
-                                </div>
-                            </div>
-
                             <!-- Submit Button -->
                             <button type="submit" class="btn btn-warning w-100">
                                 <i class="fas fa-search"></i> Generar Todas las Soluciones
@@ -159,7 +134,7 @@
             <div class="col-12">
                 <div class="card result-card">
                     <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-list"></i> 🔄 Fixture Completo (Backtracking + Round-Robin)</h5>
+                        <h5><i class="fas fa-list"></i>  Fixture Completo (Backtracking + Round-Robin)</h5>
                         <span class="badge bg-dark" th:text="${#lists.size(resultado)} + ' jornadas generadas'">
                             0 jornadas
                         </span>
@@ -181,31 +156,16 @@
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="bg-light p-3 rounded">
-                                    <h3 class="text-success mb-1">🏟️</h3>
+                                    <h3 class="text-success mb-1"></h3>
                                     <small class="text-muted">Datos de Neo4j</small>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="bg-light p-3 rounded">
-                                    <h3 class="text-primary mb-1">🔄</h3>
+                                    <h3 class="text-primary mb-1"></h3>
                                     <small class="text-muted">Round-Robin</small>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Restrictions Info -->
-                        <div th:if="${restriccionesConfig != null and #lists.size(restriccionesConfig) > 0}" class="alert alert-warning mb-4">
-                            <h6><i class="fas fa-filter"></i> Restricciones Aplicadas:</h6>
-                            <div class="row">
-                                <div th:each="restriccion : ${restriccionesConfig}" class="col-md-4 mb-1">
-                                    <span class="badge bg-warning text-dark me-1">⚙️</span>
-                                    <span th:text="${restriccion == 'tiempo' ? 'Limitar tiempo de viaje' : (restriccion == 'distancia' ? 'Limitar distancia máxima' : 'Equipos locales prioritarios')}">Restricción</span>
-                                </div>
-                            </div>
-                            <small class="mt-2 d-block">
-                                <i class="fas fa-exclamation-triangle"></i> 
-                                El algoritmo backtracking está aplicando estas restricciones para generar soluciones válidas.
-                            </small>
                         </div>
 
                         <!-- Teams Used Info -->
@@ -247,7 +207,7 @@
                         </div>
 
                         <!-- Solutions List -->
-                        <h6>📋 Jornadas del Fixture Completo:</h6>
+                        <h6> Jornadas del Fixture Completo:</h6>
                         <div th:if="${#lists.size(resultado) > 10}" class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle"></i>
                             <strong>Atención:</strong> Se generaron <span th:text="${#lists.size(resultado)}">0</span> jornadas totales. 
@@ -281,7 +241,7 @@
                                                             <br><small class="text-muted" th:text="${cruce.equipoLocal.ciudad}">Ciudad Local</small>
                                                         </div>
                                                         <div class="col-2 text-center">
-                                                            <h5 class="text-warning mb-0">🆚</h5>
+                                                            <h5 class="text-warning mb-0"></h5>
                                                         </div>
                                                         <div class="col-5">
                                                             <strong th:text="${cruce.equipoVisitante.nombre}">Equipo Visitante</strong>
@@ -296,7 +256,7 @@
                                             <div class="col-12">
                                                 <div class="alert alert-info">
                                                     <small>
-                                                        <strong>📊 Estadísticas de esta solución:</strong>
+                                                        <strong> Estadísticas de esta solución:</strong>
                                                         <span th:text="${#lists.size(solucion)} + ' enfrentamientos'">0 enfrentamientos</span> -
                                                         Combinación válida encontrada
                                                     </small>
@@ -311,7 +271,7 @@
                         <!-- Show more button if there are more than 10 results -->
                         <div th:if="${#lists.size(resultado) > 10}" class="text-center mt-3">
                             <button id="toggleBtn" class="btn btn-outline-warning btn-lg" onclick="toggleMoreResults()">
-                                <i class="fas fa-eye"></i> 🏆 Ver las <span th:text="${#lists.size(resultado) - 10}">0</span> jornadas restantes
+                                <i class="fas fa-eye"></i>  Ver las <span th:text="${#lists.size(resultado) - 10}">0</span> jornadas restantes
                                 <br><small>Total: <span th:text="${#lists.size(resultado)}">0</span> jornadas completas</small>
                             </button>
                         </div>
@@ -343,7 +303,7 @@
                                                         <br><small class="text-muted" th:text="${cruce.equipoLocal.ciudad}">Ciudad Local</small>
                                                     </div>
                                                     <div class="col-2 text-center">
-                                                        <h5 class="text-warning mb-0">🆚</h5>
+                                                        <h5 class="text-warning mb-0"></h5>
                                                     </div>
                                                     <div class="col-5">
                                                         <strong th:text="${cruce.equipoVisitante.nombre}">Equipo Visitante</strong>
@@ -358,7 +318,7 @@
                                         <div class="col-12">
                                             <div class="alert alert-info">
                                                 <small>
-                                                    <strong>📊 Estadísticas de esta jornada:</strong>
+                                                    <strong> Estadísticas de esta jornada:</strong>
                                                     <span th:text="${#lists.size(solucion)} + ' partidos'">0 partidos</span> -
                                                     Jornada válida del fixture
                                                 </small>
@@ -369,22 +329,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Debug Info -->
-        <div class="row mt-2">
-            <div class="col-12">
-                <div class="alert alert-info">
-                    <small>
-                        <strong>🔍 Debug Backtracking:</strong> 
-                        Resultado: <span th:text="${resultado != null ? 'Existe' : 'Null'}">No definido</span> | 
-                        Soluciones: <span th:text="${resultado ? #lists.size(resultado) : 0}">0</span> | 
-                        Success: <span th:text="${success}">No definido</span> | 
-                        Total: <span th:text="${totalCombinaciones}">No definido</span> |
-                        Error: <span th:text="${error}">No definido</span>
-                    </small>
                 </div>
             </div>
         </div>

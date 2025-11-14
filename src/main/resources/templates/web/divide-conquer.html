@@ -68,17 +68,7 @@
                     </div>
                     <div class="card-body">
                         <form th:action="@{/web/divide-conquer/ejecutar}" method="post">
-                            <div class="mb-3">
-                                <label for="equipos" class="form-label">🏆 Seleccionar Equipos</label>
-                                <select class="form-select" id="equipos" name="equiposSeleccionados" multiple size="4">
-                                    <option th:each="equipo : ${equipos}" 
-                                            th:value="${equipo.id}" 
-                                            th:text="${equipo.nombre}">
-                                    </option>
-                                </select>
-                                <div class="form-text">Mantén Ctrl presionado para seleccionar múltiples equipos (vacío = todos)</div>
-                            </div>
-
+                            
                             <div class="mb-3">
                                 <label for="divisionStrategy" class="form-label">📊 Estrategia de División</label>
                                 <input type="hidden" name="divisionStrategy" value="geographic">

@@ -101,7 +101,9 @@ public class DataLoader implements CommandLineRunner {
                 logger.info("🔗 Verificando y creando conexiones para Dijkstra...");
                 
                 try {
-                    // Asegurar que existen las conexiones necesarias para Dijkstra
+                    // Asegurar que el set de estadios/equipos quede limitado y sus conexiones
+                    cargarEstadios();
+                    cargarEquipos();
                     cargarConexionesEstadios();
                     cargarConexionesEquipos();
                     logger.info("✅ Conexiones verificadas/creadas exitosamente.");
@@ -147,37 +149,51 @@ public class DataLoader implements CommandLineRunner {
     private void cargarEstadios() {
         logger.info("Cargando estadios...");
 
+        // Mantener solo los estadios asociados a los 4 equipos
+        java.util.Set<String> permitidos = new java.util.HashSet<>(java.util.Arrays.asList(
+                "Estadio Monumental",
+                "La Bombonera",
+                "Estadio Libertadores de América",
+                "Estadio Presidente Perón"
+        ));
+
+        // Eliminar estadios no permitidos si existen
+        List<Estadio> existentes = estadioRepository.findAll();
+        int eliminados = 0;
+        for (Estadio ex : existentes) {
+            if (!permitidos.contains(ex.getNombre())) {
+                estadioRepository.delete(ex);
+                eliminados++;
+            }
+        }
+        if (eliminados > 0) {
+            logger.info("Estadios eliminados (no permitidos): {}", eliminados);
+        }
+
         List<Estadio> estadios = Arrays.asList(
             new Estadio("Estadio Monumental", "Buenos Aires", 70074, -34.5456, -58.4497),
             new Estadio("La Bombonera", "Buenos Aires", 54000, -34.6355, -58.3641),
             new Estadio("Estadio Libertadores de América", "Avellaneda", 50000, -34.6667, -58.3667),
-            new Estadio("Estadio Presidente Perón", "Avellaneda", 45000, -34.6667, -58.3667),
-            new Estadio("Estadio Mario Alberto Kempes", "Córdoba", 57000, -31.4201, -64.1888),
-            new Estadio("Estadio Único Madre de Ciudades", "Santiago del Estero", 30000, -27.7834, -64.2642),
-            new Estadio("Estadio Brigadier General Estanislao López", "Santa Fe", 40000, -31.6333, -60.7000),
-            new Estadio("Estadio Tomas Adolfo Duco", "Buenos Aires", 40000, -32.8908, -68.8272),
-            new Estadio("Estadio Nuevo Gasometro", "Buenos Aires", 35000, -38.0023, -57.5575),
-            new Estadio("Estadio Gigante de Arroyito", "Rosario", 41654, -32.9500, -60.6667)
+            new Estadio("Estadio Presidente Perón", "Avellaneda", 45000, -34.6667, -58.3667)
         );
 
         int createdOrUpdated = 0;
-            for (Estadio e : estadios) {
-                Estadio persisted = null;
-                java.util.List<Estadio> found = estadioRepository.findByNombre(e.getNombre());
-                if (found != null && !found.isEmpty()) persisted = found.get(0);
-                if (persisted == null) {
-                    estadioRepository.save(e);
-                    createdOrUpdated++;
-                } else {
-                    // update mutable fields
-                    persisted.setCiudad(e.getCiudad());
-                    // set capacity only if provided
-                    persisted.setCapacidad(e.getCapacidad());
-                    persisted.setLatitud(e.getLatitud());
-                    persisted.setLongitud(e.getLongitud());
-                    estadioRepository.save(persisted);
-                    createdOrUpdated++;
-                }
+        for (Estadio e : estadios) {
+            Estadio persisted = null;
+            java.util.List<Estadio> found = estadioRepository.findByNombre(e.getNombre());
+            if (found != null && !found.isEmpty()) persisted = found.get(0);
+            if (persisted == null) {
+                estadioRepository.save(e);
+                createdOrUpdated++;
+            } else {
+                // update mutable fields
+                persisted.setCiudad(e.getCiudad());
+                persisted.setCapacidad(e.getCapacidad());
+                persisted.setLatitud(e.getLatitud());
+                persisted.setLongitud(e.getLongitud());
+                estadioRepository.save(persisted);
+                createdOrUpdated++;
+            }
         }
         logger.info("Estadios creados/actualizados: {}", createdOrUpdated);
     }
@@ -187,51 +203,88 @@ public class DataLoader implements CommandLineRunner {
 
         List<Estadio> estadios = estadioRepository.findAll();
 
-        Estadio monumental = buscarEstadioPorNombre(estadios, "Estadio Monumental");
-        Estadio bombonera = buscarEstadioPorNombre(estadios, "La Bombonera");
-        Estadio libertadores = buscarEstadioPorNombre(estadios, "Estadio Libertadores de América");
-        Estadio presidentePeron = buscarEstadioPorNombre(estadios, "Estadio Presidente Perón");
-        Estadio nuevoGasometro = buscarEstadioPorNombre(estadios, "Estadio Nuevo gasometro");
-        Estadio tomasDuco = buscarEstadioPorNombre(estadios, "Estadio Tomas Adolfo Duco");
-
-        if (monumental != null && bombonera != null) {
-            agregarConexionEstadio(monumental, new ConexionEstadio(bombonera, 12.5, 500.0, 30));
-            agregarConexionEstadio(bombonera, new ConexionEstadio(monumental, 14.5, 500.0, 50));
+        if (estadios == null || estadios.size() < 2) {
+            logger.warn("No hay suficientes estadios ({}) para crear conexiones", estadios != null ? estadios.size() : 0);
+            return;
         }
 
-        if (libertadores != null && presidentePeron != null) {
-            agregarConexionEstadio(libertadores, new ConexionEstadio(presidentePeron, 2.1, 100.0, 10));
-            agregarConexionEstadio(presidentePeron, new ConexionEstadio(libertadores, 2.1, 100.0, 10));
+        int kVecinos = Math.min(3, Math.max(1, estadios.size() - 1));
+        double velocidadKmH = 80.0;
+        double costoPorKm = 40.0;
+
+        for (Estadio origen : estadios) {
+            if (origen.getLatitud() == null || origen.getLongitud() == null) continue;
+
+            java.util.List<Estadio> candidatos = new java.util.ArrayList<>(estadios);
+            candidatos.remove(origen);
+
+            candidatos.sort((a, b) -> {
+                double da = distanciaKm(origen.getLatitud(), origen.getLongitud(), a.getLatitud(), a.getLongitud());
+                double db = distanciaKm(origen.getLatitud(), origen.getLongitud(), b.getLatitud(), b.getLongitud());
+                return Double.compare(da, db);
+            });
+
+            for (int i = 0; i < Math.min(kVecinos, candidatos.size()); i++) {
+                Estadio destino = candidatos.get(i);
+                if (destino.getLatitud() == null || destino.getLongitud() == null) continue;
+
+                double dist = distanciaKm(origen.getLatitud(), origen.getLongitud(), destino.getLatitud(), destino.getLongitud());
+                double costo = dist * costoPorKm;
+                int minutos = (int) Math.round((dist / velocidadKmH) * 60.0);
+
+                boolean yaConectado = origen.getConexiones().stream()
+                        .anyMatch(c -> c.getEstadioDestino() != null && c.getEstadioDestino().getId().equals(destino.getId()));
+                if (!yaConectado) {
+                    agregarConexionEstadio(origen, new ConexionEstadio(destino, dist, costo, minutos));
+                }
+
+                boolean yaConectadoBack = destino.getConexiones().stream()
+                        .anyMatch(c -> c.getEstadioDestino() != null && c.getEstadioDestino().getId().equals(origen.getId()));
+                if (!yaConectadoBack) {
+                    agregarConexionEstadio(destino, new ConexionEstadio(origen, dist, costo, minutos));
+                }
+            }
         }
 
-        if (monumental != null && libertadores != null) {
-            agregarConexionEstadio(monumental, new ConexionEstadio(libertadores, 15.2, 600.0, 35));
-            agregarConexionEstadio(libertadores, new ConexionEstadio(monumental, 15.2, 600.0, 35));
-        }
-
-        if (bombonera != null && presidentePeron != null) {
-            agregarConexionEstadio(bombonera, new ConexionEstadio(presidentePeron, 8.3, 350.0, 25));
-            agregarConexionEstadio(presidentePeron, new ConexionEstadio(bombonera, 8.3, 350.0, 25));
-        }
-
-        if (nuevoGasometro != null && tomasDuco != null){
-            agregarConexionEstadio(nuevoGasometro, new ConexionEstadio(tomasDuco, 7.0, 400.0, 20));
-            agregarConexionEstadio(tomasDuco, new ConexionEstadio(nuevoGasometro, 7.0, 400.0, 20));
-        }
-
-
-
-        // Save any estadio that had its conexiones modified
         for (Estadio e : estadios) {
             estadioRepository.save(e);
         }
-        logger.info("Conexiones entre estadios creadas/actualizadas");
+        logger.info("Conexiones entre estadios creadas/actualizadas (K vecinos: {})", kVecinos);
+    }
+
+    private double distanciaKm(double lat1, double lon1, double lat2, double lon2) {
+        final double R = 6371.0; // Radio de la Tierra en km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     private void cargarEquipos() {
         logger.info("Cargando equipos...");
 
         List<Estadio> estadios = estadioRepository.findAll();
+
+        // Mantener solo estos 4 equipos
+        java.util.Set<String> permitidos = new java.util.HashSet<>(java.util.Arrays.asList(
+                "River Plate", "Boca Juniors", "Independiente", "Racing Club"
+        ));
+
+        // Eliminar equipos no permitidos si existen
+        List<Equipo> existentes = equipoRepository.findAll();
+        int eliminados = 0;
+        for (Equipo ex : existentes) {
+            if (!permitidos.contains(ex.getNombre())) {
+                equipoRepository.delete(ex);
+                eliminados++;
+            }
+        }
+        if (eliminados > 0) {
+            logger.info("Equipos eliminados (no permitidos): {}", eliminados);
+        }
 
         Equipo riverPlate = new Equipo("River Plate", "Buenos Aires");
         asignarEstadio(riverPlate, buscarEstadioPorNombre(estadios, "Estadio Monumental"));
@@ -245,27 +298,8 @@ public class DataLoader implements CommandLineRunner {
         Equipo independiente = new Equipo("Independiente", "Avellaneda");
         asignarEstadio(independiente, buscarEstadioPorNombre(estadios, "Estadio Presidente Perón"));
 
-        Equipo sanLorenzo = new Equipo("San Lorenzo", "Buenos Aires");
-        asignarEstadio(sanLorenzo, buscarEstadioPorNombre(estadios, "Estadio Nuevo Gasometro"));
-
-        Equipo huracan = new Equipo("Huracán", "Buenos Aires");
-        asignarEstadio(huracan, buscarEstadioPorNombre(estadios, "Estadio Tomas Adolfo Duco"));
-
-        Equipo talleres = new Equipo("Talleres", "Córdoba");
-        asignarEstadio(talleres, buscarEstadioPorNombre(estadios, "Estadio Mario Alberto Kempes"));
-
-        Equipo centralCordoba = new Equipo("Central Córdoba", "Santiago del Estero");
-        asignarEstadio(centralCordoba, buscarEstadioPorNombre(estadios, "Estadio Único Madre de Ciudades"));
-
-        Equipo colon = new Equipo("Colón", "Santa Fe");
-        asignarEstadio(colon, buscarEstadioPorNombre(estadios, "Estadio Brigadier General Estanislao López"));
-
-        Equipo godoyCruz = new Equipo("Godoy Cruz", "Mendoza");
-        asignarEstadio(godoyCruz, buscarEstadioPorNombre(estadios, "Estadio Malvinas Argentinas"));
-
         List<Equipo> equipos = Arrays.asList(
-            riverPlate, bocaJuniors, racingClub, independiente, sanLorenzo,
-            huracan, talleres, centralCordoba, colon, godoyCruz
+            riverPlate, bocaJuniors, racingClub, independiente
         );
         int createdOrUpdated = 0;
             for (Equipo eq : equipos) {
@@ -302,8 +336,16 @@ public class DataLoader implements CommandLineRunner {
         Equipo bocaJuniors = buscarEquipoPorNombre(equipos, "Boca Juniors");
         Equipo racingClub = buscarEquipoPorNombre(equipos, "Racing Club");
         Equipo independiente = buscarEquipoPorNombre(equipos, "Independiente");
-        Equipo sanLorenzo = buscarEquipoPorNombre(equipos, "San Lorenzo");
-        Equipo huracan = buscarEquipoPorNombre(equipos, "Huracán");
+        
+        // Limpiar conexiones existentes que apunten a equipos no permitidos
+        java.util.Set<String> permitidos = new java.util.HashSet<>(java.util.Arrays.asList(
+                "River Plate", "Boca Juniors", "Independiente", "Racing Club"
+        ));
+        for (Equipo eq : equipos) {
+            if (eq.getConexiones() != null) {
+                eq.getConexiones().removeIf(c -> c.getEquipoDestino() == null || !permitidos.contains(c.getEquipoDestino().getNombre()));
+            }
+        }
 
         if (riverPlate != null && bocaJuniors != null) {
             agregarConexionEquipo(riverPlate, new ConexionEquipo(bocaJuniors, 12.5, 500.0, 30));
@@ -325,21 +367,6 @@ public class DataLoader implements CommandLineRunner {
             agregarConexionEquipo(independiente, new ConexionEquipo(bocaJuniors, 8.3, 350.0, 25));
         }
 
-        if (sanLorenzo != null && huracan != null) {
-            agregarConexionEquipo(sanLorenzo, new ConexionEquipo(huracan, 8.5, 360.0, 25));
-            agregarConexionEquipo(huracan, new ConexionEquipo(sanLorenzo, 8.5, 360.0, 25));
-        }
-
-        if (riverPlate != null && sanLorenzo != null) {
-            agregarConexionEquipo(riverPlate, new ConexionEquipo(sanLorenzo, 15.5, 610.0, 36));
-            agregarConexionEquipo(sanLorenzo, new ConexionEquipo(riverPlate, 15.5, 610.0, 36));
-        }
-
-        if (bocaJuniors != null && huracan != null) {
-            agregarConexionEquipo(bocaJuniors, new ConexionEquipo(huracan, 8.0, 320.0, 24));
-            agregarConexionEquipo(huracan, new ConexionEquipo(bocaJuniors, 8.0, 320.0, 24));
-        }
-
         for (Equipo e : equipos) {
             equipoRepository.save(e);
         }
@@ -349,45 +376,49 @@ public class DataLoader implements CommandLineRunner {
     private void cargarPartidos() {
         logger.info("Cargando partidos...");
 
+        // Limpiar partidos previos para evitar residuos
+        try {
+            partidoRepository.deleteAll();
+        } catch (Exception ex) {
+            logger.warn("No se pudieron eliminar partidos previos: {}", ex.getMessage());
+        }
+
         List<Equipo> equipos = equipoRepository.findAll();
         List<Estadio> estadios = estadioRepository.findAll();
-        // Defensive: ensure we have enough equipos/estadios to index into the lists.
-        if (equipos.size() < 10 || estadios.size() < 10) {
-            logger.warn("No hay suficientes equipos ({}) o estadios ({}) para crear la programación de partidos. Se omite la carga de partidos.", equipos.size(), estadios.size());
+
+        // Mantener solo partidos entre los 4 equipos permitidos
+        java.util.Map<String, Equipo> map = new java.util.HashMap<>();
+        for (Equipo e : equipos) map.put(e.getNombre(), e);
+        Equipo river = map.get("River Plate");
+        Equipo boca = map.get("Boca Juniors");
+        Equipo racing = map.get("Racing Club");
+        Equipo indie = map.get("Independiente");
+        if (river == null || boca == null || racing == null || indie == null || estadios.isEmpty()) {
+            logger.warn("No hay equipos/estadios suficientes para crear partidos de 4 equipos");
             return;
         }
 
         List<Partido> partidos = Arrays.asList(
-            new Partido(equipos.get(0), equipos.get(1), estadios.get(0), LocalDateTime.of(2025, 10, 10, 10, 0), 1),
-            new Partido(equipos.get(2), equipos.get(3), estadios.get(2), LocalDateTime.of(2025, 10, 10, 19, 0), 1),
-            new Partido(equipos.get(4), equipos.get(5), estadios.get(0), LocalDateTime.of(2025, 10, 11, 16, 0), 1),
-            new Partido(equipos.get(6), equipos.get(7), estadios.get(4), LocalDateTime.of(2025, 10, 11, 19, 0), 1),
-            new Partido(equipos.get(8), equipos.get(9), estadios.get(6), LocalDateTime.of(2025, 10, 12, 16, 0), 1),
-
-            new Partido(equipos.get(1), equipos.get(2), estadios.get(1), LocalDateTime.of(2025, 10, 17, 16, 0), 2),
-            new Partido(equipos.get(3), equipos.get(4), estadios.get(3), LocalDateTime.of(2025, 10, 17, 19, 0), 2),
-            new Partido(equipos.get(5), equipos.get(6), estadios.get(1), LocalDateTime.of(2025, 10, 18, 16, 0), 2),
-            new Partido(equipos.get(7), equipos.get(8), estadios.get(5), LocalDateTime.of(2025, 10, 18, 19, 0), 2),
-            new Partido(equipos.get(9), equipos.get(0), estadios.get(7), LocalDateTime.of(2025, 10, 19, 16, 0), 2),
-
-            new Partido(equipos.get(0), equipos.get(2), estadios.get(0), LocalDateTime.of(2025, 10, 24, 16, 0), 3),
-            new Partido(equipos.get(1), equipos.get(3), estadios.get(1), LocalDateTime.of(2025, 10, 24, 19, 0), 3),
-            new Partido(equipos.get(4), equipos.get(6), estadios.get(0), LocalDateTime.of(2025, 10, 25, 16, 0), 3),
-            new Partido(equipos.get(5), equipos.get(7), estadios.get(1), LocalDateTime.of(2025, 10, 25, 19, 0), 3),
-            new Partido(equipos.get(8), equipos.get(9), estadios.get(6), LocalDateTime.of(2025, 10, 26, 16, 0), 3)
+            new Partido(river, boca, estadios.get(0), LocalDateTime.of(2025, 10, 10, 10, 0), 1),
+            new Partido(racing, indie, estadios.get(1 % estadios.size()), LocalDateTime.of(2025, 10, 10, 19, 0), 1),
+            new Partido(river, racing, estadios.get(2 % estadios.size()), LocalDateTime.of(2025, 10, 17, 16, 0), 2),
+            new Partido(boca, indie, estadios.get(3 % estadios.size()), LocalDateTime.of(2025, 10, 17, 19, 0), 2),
+            new Partido(river, indie, estadios.get(4 % estadios.size()), LocalDateTime.of(2025, 10, 24, 16, 0), 3),
+            new Partido(boca, racing, estadios.get(5 % estadios.size()), LocalDateTime.of(2025, 10, 24, 19, 0), 3)
         );
 
-        // Registrar resultados de ejemplo
-        partidos.get(0).registrarResultado(2, 1);
-        partidos.get(1).registrarResultado(1, 1);
-        partidos.get(2).registrarResultado(3, 0);
-        partidos.get(3).registrarResultado(0, 2);
-        partidos.get(4).registrarResultado(1, 0);
-        partidos.get(5).registrarResultado(2, 0);
-        partidos.get(6).registrarResultado(1, 2);
-        partidos.get(7).registrarResultado(0, 1);
-        partidos.get(8).registrarResultado(1, 1);
-        partidos.get(9).registrarResultado(0, 3);
+        // Registrar resultados de ejemplo (ajustado al tamaño de la lista)
+        for (int i = 0; i < partidos.size(); i++) {
+            switch (i % 6) {
+                case 0 -> partidos.get(i).registrarResultado(2, 1);
+                case 1 -> partidos.get(i).registrarResultado(1, 1);
+                case 2 -> partidos.get(i).registrarResultado(3, 0);
+                case 3 -> partidos.get(i).registrarResultado(0, 2);
+                case 4 -> partidos.get(i).registrarResultado(1, 0);
+                default -> partidos.get(i).registrarResultado(2, 0);
+            }
+        }
+        
 
         int createdOrUpdated = 0;
         for (Partido p : partidos) {

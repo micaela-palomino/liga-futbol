@@ -194,7 +194,7 @@ public class MSTAlgorithm {
     /**
      * Algoritmo de Prim comenzando desde un nodo específico
      */
-    private ResultadoMST algoritmoPrimDesdeNodo(List<Equipo> equipos, int indiceInicio) {
+    public ResultadoMST algoritmoPrimDesdeNodo(List<Equipo> equipos, int indiceInicio) {
         if (equipos.isEmpty() || indiceInicio >= equipos.size()) {
             return new ResultadoMST(new ArrayList<>(), 0.0);
         }

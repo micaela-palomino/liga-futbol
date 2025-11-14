@@ -1278,60 +1278,63 @@ public class WebInterfaceController {
     }
 
     /**
-     * Ejecutar algoritmo MST - Prim
+     * Ejecutar algoritmo MST - Prim (con nodo inicial opcional)
      */
     @PostMapping("/mst/prim")
     public String ejecutarMSTPrim(@RequestParam(required = false) List<Long> estadiosSeleccionados,
-                                 @RequestParam(required = false) String estadioInicioId,
-                                 Model model,
-                                 RedirectAttributes redirectAttributes) {
+                                  @RequestParam(required = false) String estadioInicioId,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
         try {
-            System.out.println("🌳 DEBUG MST Prim: estadiosSeleccionados=" + estadiosSeleccionados);
-            
-            // Obtener estadios
-            List<Estadio> estadios = estadiosSeleccionados != null && !estadiosSeleccionados.isEmpty()
-                ? ligaService.obtenerEstadiosPorIds(estadiosSeleccionados)
-                : ligaService.obtenerTodosLosEstadios();
-            
-            // Estadio de inicio
-            Estadio estadioInicio = estadioInicioId != null && !estadioInicioId.isEmpty()
-                ? ligaService.obtenerEstadioPorId(estadioInicioId)
-                : (!estadios.isEmpty() ? estadios.get(0) : null);
-            
-            System.out.println("🔧 DEBUG: Usando " + estadios.size() + " estadios para MST Prim");
-            System.out.println("🎯 DEBUG: Estadio inicio: " + (estadioInicio != null ? estadioInicio.getNombre() : "NULL"));
-            
-            // Obtener equipos para MST
+            System.out.println("🌱 DEBUG MST Prim: estadioInicioId=" + estadioInicioId + ", estadiosSeleccionados=" + estadiosSeleccionados);
+
+            // Obtener lista de estadios a usar
+            List<Estadio> estadios = (estadiosSeleccionados != null && !estadiosSeleccionados.isEmpty())
+                    ? ligaService.obtenerEstadiosPorIds(estadiosSeleccionados)
+                    : ligaService.obtenerTodosLosEstadios();
+
+            // Obtener equipos para MST (mismo tamaño que estadios disponibles)
             List<Equipo> equiposParaMST = ligaService.obtenerTodosLosEquipos().stream().limit(estadios.size()).toList();
-            
-            // Ejecutar MST Prim con múltiples variaciones
-            long startTime = System.currentTimeMillis();
-            MSTAlgorithm.ResultadoMultiplesMST resultadoMultiple = 
-                mstAlgorithm.algoritmoMultiplesMST(equiposParaMST);
-            long endTime = System.currentTimeMillis();
-            
-            double tiempoEjecucion = (endTime - startTime) / 1000.0;
-            
-            MSTAlgorithm.ResultadoMST mejorMST = resultadoMultiple.getMejorMST();
-            
-            System.out.println("🏆 DEBUG Múltiples MST Prim: " + resultadoMultiple.getVariaciones().size() + " variaciones");
-            if (mejorMST != null) {
-                System.out.println("🥇 DEBUG Mejor MST: " + mejorMST.getAristas().size() + " aristas");
-                System.out.println("💰 DEBUG Mejor costo: " + mejorMST.getCostoTotal());
+
+            // Resolver estadio de inicio y mapearlo a índice de equipo
+            Estadio estadioInicio = (estadioInicioId != null && !estadioInicioId.isBlank())
+                    ? ligaService.obtenerEstadioPorId(estadioInicioId)
+                    : null;
+            int indiceInicio = 0;
+            if (estadioInicio != null) {
+                for (int i = 0; i < equiposParaMST.size(); i++) {
+                    Equipo eq = equiposParaMST.get(i);
+                    if (eq.getEstadio() != null && estadioInicio.getId().equals(eq.getEstadio().getId())) {
+                        indiceInicio = i;
+                        break;
+                    }
+                }
             }
-            System.out.println("⏱️ DEBUG Tiempo: " + tiempoEjecucion + " segundos");
-            
-            // Debug detallado de todas las variaciones
-            System.out.println("📊 DEBUG TODAS LAS VARIACIONES MST PRIM:");
-            for (int i = 0; i < resultadoMultiple.getVariaciones().size(); i++) {
-                MSTAlgorithm.ResultadoMST variacion = resultadoMultiple.getVariaciones().get(i);
-                System.out.println("   Variación " + (i + 1) + ": Costo " + variacion.getCostoTotal() + 
-                                 " (" + variacion.getAristas().size() + " aristas)" + 
-                                 (i == 0 ? " 🏆 ÓPTIMO" : ""));
+
+            long start = System.currentTimeMillis();
+            MSTAlgorithm.ResultadoMST primDesdeInicio = mstAlgorithm.algoritmoPrimDesdeNodo(equiposParaMST, indiceInicio);
+            // Generar otras variaciones (Prim desde otros nodos + Kruskal)
+            MSTAlgorithm.ResultadoMultiplesMST otras = mstAlgorithm.algoritmoMultiplesMST(equiposParaMST);
+            // Construir una lista que comience con el resultado desde el nodo seleccionado
+            java.util.List<MSTAlgorithm.ResultadoMST> variaciones = new java.util.ArrayList<>();
+            variaciones.add(primDesdeInicio);
+            for (MSTAlgorithm.ResultadoMST v : otras.getVariaciones()) {
+                // Evitar duplicados simples por costo y cantidad de aristas
+                if (!(Math.abs(v.getCostoTotal() - primDesdeInicio.getCostoTotal()) < 1e-9
+                        && v.getAristas().size() == primDesdeInicio.getAristas().size())) {
+                    variaciones.add(v);
+                }
             }
-            
+            MSTAlgorithm.ResultadoMultiplesMST resultadoMultiple = new MSTAlgorithm.ResultadoMultiplesMST(variaciones);
+
+            long end = System.currentTimeMillis();
+            double tiempoEjecucion = (end - start) / 1000.0;
+
+            System.out.println("🎯 DEBUG Prim desde índice=" + indiceInicio + " costo=" + primDesdeInicio.getCostoTotal());
+            System.out.println("🏆 DEBUG Variaciones generadas (con preferencia al inicio seleccionado)=" + resultadoMultiple.getVariaciones().size());
+
             model.addAttribute("resultadoMultiple", resultadoMultiple);
-            model.addAttribute("resultado", mejorMST);
+            model.addAttribute("resultado", primDesdeInicio);
             model.addAttribute("equipos", ligaService.obtenerTodosLosEquipos());
             model.addAttribute("estadios", ligaService.obtenerTodosLosEstadios());
             model.addAttribute("estadiosUsados", estadios);
@@ -1339,9 +1342,8 @@ public class WebInterfaceController {
             model.addAttribute("tipoAlgoritmo", "PRIM");
             model.addAttribute("tiempoEjecucion", tiempoEjecucion);
             model.addAttribute("success", true);
-            
+
             return "web/mst";
-            
         } catch (Exception e) {
             System.out.println("❌ ERROR MST Prim: " + e.getMessage());
             e.printStackTrace();
